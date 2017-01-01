@@ -12,7 +12,9 @@ module Data.Response
     fromUser,
     fromAdmin,
     rateLimit,
-    userLimit
+    rateLimit',
+    userLimit,
+    userLimit'
 )
 where
 
@@ -93,7 +95,12 @@ msgUser Message{..} =
 rateLimit :: MonadIO m => BotConfig -> Response m -> m (Response m)
 rateLimit c res = do
     mvar <- liftIO newEmptyMVar
-    return . Response $ \m -> do
+    rateLimit' c mvar res
+
+-- | Like 'rateLimit' but with external timestamp 'MVar'.
+rateLimit' :: MonadIO m 
+           => BotConfig -> MVar POSIXTime -> Response m -> m (Response m)
+rateLimit' c mvar res = return . Response $ \m -> do
         res <- respond res m
         case res of
             Nothing -> return Nothing
@@ -111,7 +118,15 @@ rateLimit c res = do
 userLimit :: MonadIO m => BotConfig -> Response m -> m (Response m)
 userLimit c res = do
     mvar <- liftIO (newMVar M.empty)
-    return . Response $ \m -> do
+    userLimit' c mvar res
+
+type UserCooldown = M.Map UserName POSIXTime
+
+-- | Like 'userLimit' but supplying an external cooldown map. This is useful for
+-- sharing cooldown times between commands.
+userLimit' :: MonadIO m 
+           => BotConfig -> MVar UserCooldown -> Response m -> m (Response m)
+userLimit' c mvar res = return . Response $ \m -> do
         res <- respond res m
         case res of
             Nothing -> return Nothing
