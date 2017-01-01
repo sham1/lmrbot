@@ -30,4 +30,5 @@ executable lmrbot
                        transformers,
                        MonadRandom,
                        vector,
-                       file-embed
+                       file-embed,
+                       containers

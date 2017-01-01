@@ -10,9 +10,12 @@ module Commands.Quote
 )
 where
 
+import Control.Applicative
 import Control.Monad.Random.Class
+import Control.Monad.Trans.Maybe
 import Data.FileEmbed
 import Data.Response
+import Data.Monoid
 import Data.Maybe
 import Network.IRC
 import Data.Vector (Vector, (!))
@@ -20,13 +23,23 @@ import Data.ByteString.Char8 (ByteString)
 import Data.Attoparsec.ByteString.Char8
 import qualified Data.Vector as V
 import qualified Data.ByteString.Char8 as B
+import Text.Printf
 
 type Quote = ByteString
 
+qcmd :: ByteString -> Parser (Maybe Int)
+qcmd cmd = string cmd *> optional (read <$> (space *> many1 digit))
+
 quote :: MonadRandom m => ByteString -> Vector Quote -> Response m
-quote cmd qs = simpleCmd cmd $ \_ chan -> do
-    r <- getRandomR (0, pred (V.length qs))
-    return $ privmsg (fromMaybe "" chan) (qs ! r)
+quote cmd qs = fromMsgParser (qcmd cmd) $ \_ chan k -> do
+    let bounds = pred (V.length qs)
+    r <- case k of
+        Nothing -> getRandomR (0, bounds)
+        Just r' -> if 0 <= r' && r' <= bounds 
+                   then return r' 
+                   else getRandomR (0, bounds)
+    let prefix = printf "[%d/%d] " r bounds
+    return $ privmsg (fromMaybe "" chan) (B.pack prefix <> qs ! r)
 
 rms :: MonadRandom m => Response m
 rms = quote ".rms" rmsQs

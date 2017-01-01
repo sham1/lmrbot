@@ -40,6 +40,7 @@ toHandleLine h = do
     liftIO (B.hPutStrLn h x)
     toHandleLine h
 
+register, joins :: Monad m => BotConfig -> Producer Message m ()
 register BotConfig{..} = do
     yield $ user botnick "0" "*" "bot"
     yield $ nick botnick
