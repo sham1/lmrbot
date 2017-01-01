@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Monad
+import Control.Monad.Random
 import Control.Concurrent (threadDelay)
 import Data.BotConfig
 import Data.ByteString.Char8 (ByteString)
@@ -15,6 +16,8 @@ import Pipes.ByteString (stdout)
 import qualified Data.ByteString.Char8 as B
 import qualified Pipes.Prelude as P
 import System.IO (Handle, hSetBuffering, BufferMode (..), hIsEOF)
+
+import Commands.Quote
 
 network :: MonadIO m => BotConfig -> m Handle
 network BotConfig{..} = liftIO $ do
@@ -48,9 +51,9 @@ parseIRC = P.map decode >-> filterJust
 filterJust :: Monad m => Pipe (Maybe a) a m ()
 filterJust = P.filter isJust >-> P.map fromJust
 
-response :: Monad m => [Response] -> Pipe Message ByteString m ()
-response rsps = P.map go >-> filterJust >-> P.map encode
-    where go m = listToMaybe . mapMaybe (`respond` m) $ rsps
+response :: Monad m => [Response m] -> Pipe Message ByteString m ()
+response rsps = P.mapM go >-> filterJust >-> P.map encode
+    where go m = listToMaybe . catMaybes <$> mapM (`respond` m) rsps
 
 inbound, outbound :: MonadIO m => Consumer' ByteString m ()
 inbound = P.map (flip B.append "\r\n" . B.append "<-- ") >-> stdout
@@ -78,4 +81,4 @@ main = do
         up >-> P.tee inbound >-> parseIRC >-> response comms
            >-> P.tee outbound >-> down
 
-    where comms = [ pingR ]
+    where comms = [ pingR, rms ]
