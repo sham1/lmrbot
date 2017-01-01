@@ -17,6 +17,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Pipes.Prelude as P
 import System.IO (Handle, hSetBuffering, BufferMode (..), hIsEOF)
 
+import Commands.Admin
 import Commands.Quote
 
 network :: MonadIO m => BotConfig -> m Handle
@@ -61,8 +62,6 @@ outbound = P.map (flip B.append "\r\n" . B.append "--> ") >-> stdout
 
 main :: IO ()
 main = do
-    let conf = defaultConfig
-
     h <- network conf
     let up   = fromHandleLine h
         down = toHandleLine h
@@ -81,4 +80,5 @@ main = do
         up >-> P.tee inbound >-> parseIRC >-> response comms
            >-> P.tee outbound >-> down
 
-    where comms = [ pingR, rms ]
+    where conf  = defaultConfig
+          comms = [ pingR, joinCmd conf, leaveCmd conf, rms, linus ]

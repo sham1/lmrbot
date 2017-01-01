@@ -6,6 +6,7 @@ module Data.Response
     pingR,
     isPing,
     simpleCmd,
+    simpleCmd',
     fromMsgParser,
     fromMsgParser'
 )
@@ -34,6 +35,12 @@ simpleCmd :: Monad m
           -> (Maybe Prefix -> Maybe Channel -> m Message)
           -> Response m
 simpleCmd x f = fromMsgParser (() <$ string x) (\x y _ -> f x y)
+
+simpleCmd' :: Monad m 
+           => ByteString 
+           -> (Maybe Prefix -> Maybe Channel -> m (Maybe Message))
+           -> Response m
+simpleCmd' x f = fromMsgParser' (() <$ string x) (\x y _ -> f x y)
           
 -- | Construct a response given a parser for the content of a PRIVMSG.
 fromMsgParser :: Monad m => Parser a 
