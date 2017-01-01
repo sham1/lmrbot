@@ -6,7 +6,8 @@ module Commands.Quote
     quote,
     rms,
     linus,
-    theo
+    theo,
+    catv
 )
 where
 
@@ -52,5 +53,9 @@ linus = quote ":linus" linusQs
 theo :: MonadRandom m => Response m
 theo = quote ":theo" theoQs
     where theoQs = fromEmbed ($(embedFile "quotes/theo"))
+
+catv :: MonadRandom m => Response m
+catv = quote ":catv" catvQs
+    where catvQs = fromEmbed ($(embedFile "quotes/catv"))
 
 fromEmbed = V.fromList . B.lines

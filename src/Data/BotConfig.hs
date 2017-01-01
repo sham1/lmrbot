@@ -23,7 +23,7 @@ defaultConfig :: BotConfig
 defaultConfig = BotConfig
     { server    = "irc.snoonet.org"
     , service   = PortNumber 6667
-    , chans     = ["#tsahyt-bot-test"]
+    , chans     = ["#linuxmasterrace"]
     , botnick   = "anActualBotnet"
     , adminUser = "tsahyt"
     , rateTime  = 300

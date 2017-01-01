@@ -92,4 +92,5 @@ main = do
                   , userLimit conf rms
                   , userLimit conf linus
                   , userLimit conf theo 
+                  , userLimit conf catv
                   ]
