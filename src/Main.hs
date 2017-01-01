@@ -8,6 +8,7 @@ import Control.Concurrent (threadDelay)
 import Data.BotConfig
 import Data.ByteString.Char8 (ByteString)
 import Data.Maybe
+import Data.Monoid
 import Data.Response
 import Network
 import Network.IRC
@@ -58,8 +59,8 @@ response rsps = P.mapM go >-> filterJust >-> P.map encode
     where go m = listToMaybe . catMaybes <$> mapM (`respond` m) rsps
 
 inbound, outbound :: MonadIO m => Consumer' ByteString m ()
-inbound = P.map (flip B.append "\r\n" . B.append "<-- ") >-> stdout
-outbound = P.map (flip B.append "\r\n" . B.append "--> ") >-> stdout
+inbound = P.map (\x -> "<-- " <> x <> "\r\n") >-> stdout
+outbound = P.map (\x -> "--> " <> x <> "\r\n") >-> stdout
 
 main :: IO ()
 main = do
