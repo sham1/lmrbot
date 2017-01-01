@@ -6,20 +6,20 @@ module Data.BotConfig
 )
 where
 
-import Network.Socket
+import Network
 import Network.IRC
 
 data BotConfig = BotConfig
     { server  :: HostName
-    , service :: ServiceName
+    , service :: PortID
     , chans   :: [Channel]
     , botnick :: UserName
     }
 
 defaultConfig :: BotConfig
 defaultConfig = BotConfig
-    { server  = "irc.snoonet.org"
-    , service = "6667"
+    { server  = "localhost" -- "irc.freenode.net"
+    , service = PortNumber 6667
     , chans   = ["#tsahyt-bot-test"]
     , botnick = "anActualBotnet"
     }

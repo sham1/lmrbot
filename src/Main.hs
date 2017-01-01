@@ -2,23 +2,44 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Control.Monad
 import Data.BotConfig
-import Pipes.Network.TCP
-import Pipes
-import Data.Maybe
-import qualified Pipes.Prelude as P
-import Pipes.ByteString
 import Data.ByteString.Char8 (ByteString)
+import Data.Maybe
+import Data.Response
+import Network
+import Network.IRC
+import Pipes
+import Pipes.ByteString (stdout)
 import qualified Data.ByteString.Char8 as B
-import Network.IRC -- (decode, Message (..), encode, nick, joinChan)
+import qualified Pipes.Prelude as P
+import System.IO (Handle, hSetBuffering, BufferMode (..), hIsEOF)
 
-startSocket :: BotConfig -> IO Socket
-startSocket BotConfig{..} = fst <$> connectSock server service
+network :: MonadIO m => BotConfig -> m Handle
+network BotConfig{..} = liftIO $ do
+    h <- connectTo server service
+    hSetBuffering h NoBuffering
+    return h
+
+fromHandleLine :: MonadIO m => Handle -> Producer ByteString m ()
+fromHandleLine h = do
+    eof <- liftIO $ hIsEOF h
+    unless eof $ do
+        x <- liftIO $ B.hGetLine h
+        yield x
+        fromHandleLine h
+
+toHandleLine :: MonadIO m => Handle -> Consumer ByteString m ()
+toHandleLine h = do
+    x <- await
+    liftIO (B.hPutStrLn h x)
+    toHandleLine h
 
 register BotConfig{..} = do
-    yield $ nick botnick
     yield $ user botnick "0" "*" "bot"
-    mapM_ (yield . joinChan) chans
+    yield $ nick botnick
+
+joins BotConfig {..} = mapM_ (yield . joinChan) chans
 
 parseIRC :: Monad m => Pipe ByteString Message m ()
 parseIRC = P.map decode >-> filterJust
@@ -28,21 +49,26 @@ filterJust = P.filter isJust >-> P.map fromJust
 
 response :: Monad m => Pipe Message ByteString m ()
 response = P.map go >-> filterJust >-> P.map encode
-    where go = Just
+    where go :: Message -> Maybe Message
+          go m = listToMaybe . mapMaybe (`respond` m) $ rsps
+          rsps = [ pingR ]
 
 inbound, outbound :: MonadIO m => Consumer' ByteString m ()
-inbound = P.map (B.append "<-- ") >-> stdout
-outbound = P.map (flip B.append "\n" . B.append "--> ") >-> stdout
+inbound = P.map (flip B.append "\r\n" . B.append "<-- ") >-> stdout
+outbound = P.map (flip B.append "\r\n" . B.append "--> ") >-> stdout
 
 main :: IO ()
 main = do
-    s <- startSocket defaultConfig
-    let up   = fromSocket s 1024
-        down = toSocket s
+    h <- network defaultConfig
+    let up   = fromHandleLine h
+        down = toHandleLine h
+
     -- bootstrap commands for nick and initial join
+    runEffect $ up >-> P.take 2 >-> inbound
     runEffect $ 
         register defaultConfig >-> P.map encode >-> P.tee outbound >-> down
 
     -- bot loop
     runEffect $ 
-        up >-> P.tee inbound >-> parseIRC >-> response >-> P.drain
+        up >-> P.tee inbound >-> parseIRC >-> response 
+           >-> P.tee outbound >-> down
