@@ -42,15 +42,15 @@ quote cmd qs = fromMsgParser (qcmd cmd) $ \_ chan k -> do
     return $ privmsg (fromMaybe "" chan) (B.pack prefix <> qs ! r)
 
 rms :: MonadRandom m => Response m
-rms = quote ".rms" rmsQs
+rms = quote ":rms" rmsQs
     where rmsQs = fromEmbed ($(embedFile "quotes/rms"))
 
 linus :: MonadRandom m => Response m
-linus = quote ".linus" linusQs
+linus = quote ":linus" linusQs
     where linusQs = fromEmbed ($(embedFile "quotes/linus"))
 
 theo :: MonadRandom m => Response m
-theo = quote ".theo" theoQs
+theo = quote ":theo" theoQs
     where theoQs = fromEmbed ($(embedFile "quotes/theo"))
 
 fromEmbed = V.fromList . B.lines
