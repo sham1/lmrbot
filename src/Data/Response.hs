@@ -9,6 +9,9 @@ module Data.Response
     simpleCmd',
     fromMsgParser,
     fromMsgParser',
+    ctcpCmd,
+    ctcpCmd',
+    ctcpVersion,
     fromUser,
     fromAdmin,
     rateLimit,
@@ -75,6 +78,30 @@ fromMsgParser' p f = Response $ \Message{..} ->
                              _     -> error "Invalid message format"
         x <- MaybeT $ return (either (const Nothing) Just (parseOnly p msg))
         MaybeT $ f msg_prefix chan x
+
+-- | Response on CTCP commands like VERSION. This is identical to normal
+-- commands but wraps the parser in @\001@s for CTCP. The supplied function must
+-- decide whether to NOTICE or PRIVMSG itself.
+ctcpCmd :: Monad m
+        => Parser a
+        -> (Maybe Prefix -> Maybe ByteString -> a -> m Message)
+        -> Response m
+ctcpCmd p f = ctcpCmd' p (\x y z -> pure <$> f x y z)
+
+-- | Like 'ctcpCmd' but allowing failure.
+ctcpCmd' :: Monad m
+         => Parser a
+         -> (Maybe Prefix -> Maybe ByteString -> a -> m (Maybe Message))
+         -> Response m
+ctcpCmd' p = fromMsgParser' (ctcpChar *> p <* ctcpChar)
+    where ctcpChar = char '\001'
+
+ctcpVersion :: Monad m => Response m
+ctcpVersion = ctcpCmd (() <$ string "VERSION") $ \_ u _ ->
+    return $ notice (fromMaybe "" u) "lmrbot -- github.com/tsahyt/lmrbot"
+
+notice :: ByteString -> ByteString -> Message
+notice u m = Message Nothing "NOTICE" [u,m]
 
 fromAdmin :: BotConfig -> Message -> Bool
 fromAdmin BotConfig{..} = fromUser adminUser

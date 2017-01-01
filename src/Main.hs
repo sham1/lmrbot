@@ -86,6 +86,7 @@ main = do
 
     where conf  = defaultConfig
           comms = [ return pingR
+                  , return ctcpVersion
                   , return $ joinCmd conf
                   , return $ leaveCmd conf
                   , userLimit conf rms
