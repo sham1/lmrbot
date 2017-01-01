@@ -88,7 +88,7 @@ main = do
           comms = [ return pingR
                   , return $ joinCmd conf
                   , return $ leaveCmd conf
-                  , rateLimit conf rms
-                  , rateLimit conf linus
-                  , rateLimit conf theo 
+                  , userLimit conf rms
+                  , userLimit conf linus
+                  , userLimit conf theo 
                   ]

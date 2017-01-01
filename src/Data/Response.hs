@@ -9,6 +9,8 @@ module Data.Response
     simpleCmd',
     fromMsgParser,
     fromMsgParser',
+    fromUser,
+    fromAdmin,
     rateLimit,
     userLimit
 )
@@ -78,34 +80,48 @@ fromAdmin BotConfig{..} = fromUser adminUser
 fromUser :: UserName -> Message -> Bool
 fromUser n Message{..} =
     case msg_prefix of
-        Just (NickName _ (Just u) _) -> n == u
+        Just (NickName u _ _) -> n == u
         _ -> False
 
 msgUser :: Message -> Maybe UserName
 msgUser Message{..} =
     case msg_prefix of
-        Just (NickName _ (Just u) _) -> Just u
+        Just (NickName u _ _) -> Just u
         _ -> Nothing
 
+-- | Rate limit a 'Response' according to values in the 'BotConfig'
 rateLimit :: MonadIO m => BotConfig -> Response m -> m (Response m)
 rateLimit c res = do
     mvar <- liftIO newEmptyMVar
     return . Response $ \m -> do
-        ts <- fromMaybe 0 <$> liftIO (tryTakeMVar mvar)
-        tc <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
-        if tc - ts <= rateTime c && not (fromAdmin c m)
-            then liftIO (putMVar mvar tc) >> return Nothing
-            else respond res m
+        res <- respond res m
+        case res of
+            Nothing -> return Nothing
+            r -> do
+                ts  <- fromMaybe 0 <$> liftIO (tryTakeMVar mvar)
+                tc  <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
+                liftIO (putMVar mvar tc)
+                liftIO (print ts)
+                return $ if tc - ts <= rateTime c && not (fromAdmin c m)
+                         then Nothing
+                         else r
 
+-- | Rate limit a 'Response' according to value in config, but for each user
+-- individually, i.e. each user gets to use the command every X seconds at most.
 userLimit :: MonadIO m => BotConfig -> Response m -> m (Response m)
 userLimit c res = do
     mvar <- liftIO (newMVar M.empty)
     return . Response $ \m -> do
-        umap <- liftIO (takeMVar mvar)
-        tc   <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
-        let u     = fromMaybe "__unknown__" $ msgUser m
-            ts    = fromMaybe 0 $ M.lookup u umap
-            umap' = M.insert u tc umap
-        if tc - ts <= rateTime c && not (fromAdmin c m)
-            then liftIO (putMVar mvar umap') >> return Nothing
-            else respond res m
+        res <- respond res m
+        case res of
+            Nothing -> return Nothing
+            r -> do
+                umap <- liftIO (takeMVar mvar)
+                tc   <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
+                let u     = fromMaybe "__unknown__" $ msgUser m
+                    ts    = fromMaybe 0 $ M.lookup u umap
+                    umap' = M.insert u tc umap
+                liftIO (putMVar mvar umap')
+                return $ if tc - ts <= rateTime c && not (fromAdmin c m)
+                         then Nothing
+                         else r
