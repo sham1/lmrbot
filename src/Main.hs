@@ -81,4 +81,4 @@ main = do
            >-> P.tee outbound >-> down
 
     where conf  = defaultConfig
-          comms = [ pingR, joinCmd conf, leaveCmd conf, rms, linus ]
+          comms = [ pingR, joinCmd conf, leaveCmd conf, rms, linus, theo ]
