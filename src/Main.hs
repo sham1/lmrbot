@@ -75,11 +75,20 @@ main = do
            >-> response [ pingR ] >-> P.tee outbound >-> down
         liftIO (threadDelay 1000000)
         joins conf >-> P.map encode >-> P.tee outbound >-> down
+    
+    -- initialize commands
+    comms' <- sequence comms
 
     -- bot loop
     runEffect $ 
-        up >-> P.tee inbound >-> parseIRC >-> response comms
+        up >-> P.tee inbound >-> parseIRC >-> response comms'
            >-> P.tee outbound >-> down
 
     where conf  = defaultConfig
-          comms = [ pingR, joinCmd conf, leaveCmd conf, rms, linus, theo ]
+          comms = [ return pingR
+                  , return $ joinCmd conf
+                  , return $ leaveCmd conf
+                  , rateLimit conf rms
+                  , rateLimit conf linus
+                  , rateLimit conf theo 
+                  ]

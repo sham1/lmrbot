@@ -31,4 +31,5 @@ executable lmrbot
                        MonadRandom,
                        vector,
                        file-embed,
-                       containers
+                       containers,
+                       time

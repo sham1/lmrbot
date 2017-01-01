@@ -8,6 +8,7 @@ where
 
 import Network
 import Network.IRC
+import Data.Time.Clock
 
 data BotConfig = BotConfig
     { server    :: HostName
@@ -15,6 +16,7 @@ data BotConfig = BotConfig
     , chans     :: [Channel]
     , botnick   :: UserName
     , adminUser :: UserName
+    , rateTime  :: NominalDiffTime
     }
 
 defaultConfig :: BotConfig
@@ -24,4 +26,5 @@ defaultConfig = BotConfig
     , chans     = ["#tsahyt-bot-test"]
     , botnick   = "anActualBotnet"
     , adminUser = "tsahyt"
+    , rateTime  = 300
     }
