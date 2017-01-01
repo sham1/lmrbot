@@ -3,7 +3,8 @@
 module Data.Response
 (
     Response (..),
-    pingR
+    pingR,
+    isPing
 )
 where
 
@@ -14,6 +15,9 @@ import Debug.Trace
 newtype Response = Response { respond :: Message -> Maybe Message }
 
 pingR :: Response
-pingR = Response $ \Message{..} -> do
-    guard (msg_command == "PING")
+pingR = Response $ \m@Message{..} -> do
+    guard (isPing m)
     return $ pong (head msg_params)
+
+isPing :: Message -> Bool
+isPing Message{..} = msg_command == "PING"

@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Monad
+import Control.Concurrent (threadDelay)
 import Data.BotConfig
 import Data.ByteString.Char8 (ByteString)
 import Data.Maybe
@@ -47,11 +48,9 @@ parseIRC = P.map decode >-> filterJust
 filterJust :: Monad m => Pipe (Maybe a) a m ()
 filterJust = P.filter isJust >-> P.map fromJust
 
-response :: Monad m => Pipe Message ByteString m ()
-response = P.map go >-> filterJust >-> P.map encode
-    where go :: Message -> Maybe Message
-          go m = listToMaybe . mapMaybe (`respond` m) $ rsps
-          rsps = [ pingR ]
+response :: Monad m => [Response] -> Pipe Message ByteString m ()
+response rsps = P.map go >-> filterJust >-> P.map encode
+    where go m = listToMaybe . mapMaybe (`respond` m) $ rsps
 
 inbound, outbound :: MonadIO m => Consumer' ByteString m ()
 inbound = P.map (flip B.append "\r\n" . B.append "<-- ") >-> stdout
@@ -59,16 +58,24 @@ outbound = P.map (flip B.append "\r\n" . B.append "--> ") >-> stdout
 
 main :: IO ()
 main = do
-    h <- network defaultConfig
+    let conf = defaultConfig
+
+    h <- network conf
     let up   = fromHandleLine h
         down = toHandleLine h
 
     -- bootstrap commands for nick and initial join
-    runEffect $ up >-> P.take 2 >-> inbound
-    runEffect $ 
-        register defaultConfig >-> P.map encode >-> P.tee outbound >-> down
+    runEffect $ do
+        up >-> P.take 2 >-> inbound
+        register conf >-> P.map encode >-> P.tee outbound >-> down
+        up >-> parseIRC >-> P.dropWhile (not . isPing) >-> P.take 1 
+           >-> response [ pingR ] >-> P.tee outbound >-> down
+        liftIO (threadDelay 1000000)
+        joins conf >-> P.map encode >-> P.tee outbound >-> down
 
     -- bot loop
     runEffect $ 
-        up >-> P.tee inbound >-> parseIRC >-> response 
+        up >-> P.tee inbound >-> parseIRC >-> response comms
            >-> P.tee outbound >-> down
+
+    where comms = [ pingR ]

@@ -18,7 +18,7 @@ data BotConfig = BotConfig
 
 defaultConfig :: BotConfig
 defaultConfig = BotConfig
-    { server  = "localhost" -- "irc.freenode.net"
+    { server  = "irc.snoonet.org"
     , service = PortNumber 6667
     , chans   = ["#tsahyt-bot-test"]
     , botnick = "anActualBotnet"
