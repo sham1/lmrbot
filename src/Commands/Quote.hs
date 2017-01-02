@@ -28,7 +28,7 @@ import Text.Printf
 type Quote = ByteString
 
 qcmd :: ByteString -> Parser (Maybe Int)
-qcmd cmd = string cmd *> space *> optional (signed decimal)
+qcmd cmd = string cmd *> optional (space *> signed decimal)
 
 quote :: MonadRandom m => ByteString -> Vector Quote -> Response m
 quote cmd qs = fromMsgParser (qcmd cmd) $ \_ chan k -> do
