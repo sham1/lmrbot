@@ -4,7 +4,9 @@ module Commands.Admin
 (
     joinCmd,
     leaveCmd,
-    modeCmd
+    modeCmd,
+    inviteR,
+    isInvite,
 )
 where
 
@@ -45,3 +47,13 @@ modeCmd r = fromMsgParser'
         NickName n _ _ <- MaybeT. return $ p
         guard (n == adminUser r)
         return . mode r $ m
+
+-- | Invite response
+inviteR :: Monad m => BotConfig -> Response m
+inviteR r = Response $ \m@Message{..} -> runMaybeT $ do
+    NickName n _ _ <- MaybeT. return $ msg_prefix
+    guard (isInvite m && n == adminUser r)
+    return $ joinChan (last msg_params)
+
+isInvite :: Message -> Bool
+isInvite Message{..} = msg_command == "INVITE"

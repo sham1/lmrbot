@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Concurrent (threadDelay)
 import Control.Monad.Random ()
 import Control.Monad.Trans.Maybe
 import Data.BotConfig
@@ -56,8 +57,9 @@ bootstrap conf up down = do
     up >-> P.tee inbound >-> parseIRC >-> P.dropWhile (not . isNSNotice) 
        >-> P.take 1 >-> P.drain
 
-    -- do nickserv auth
+    -- do nickserv auth and wait 1s before joining
     auth conf >-> P.map encode >-> P.tee outbound >-> down
+    liftIO (threadDelay 1000000)
     
     -- join
     joins conf >-> P.map encode >-> P.tee outbound >-> down
@@ -85,6 +87,7 @@ main = do
 
     where comms c ulim = 
               [ return pingR
+              , return $ inviteR c
               , return ctcpVersion
               , return $ joinCmd c
               , return $ leaveCmd c
