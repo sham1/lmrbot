@@ -24,17 +24,15 @@ import Data.Response
 joinCmd :: Monad m => BotConfig -> Response m
 joinCmd r = fromMsgParser' (string ":join" *> space *> takeByteString) $ 
     \p _ c -> runMaybeT $ do
-        NickName n _ _ <- MaybeT . return $ p
-        guard (n == adminUser r)
+        guard (fromAdmin' r p)
         return $ joinChan c
 
 leaveCmd :: Monad m => BotConfig -> Response m
 leaveCmd r = fromMsgParser' 
     (string ":leave" *> optional (space *> takeByteString)) $ \p c c'->
     runMaybeT $ do
-        NickName n _ _ <- MaybeT . return $ p
         chan <- MaybeT . return $ c
-        guard (n == adminUser r)
+        guard (fromAdmin' r p)
         return . part . fromMaybe chan $ c'
 
 mode :: BotConfig -> ByteString -> Message
@@ -44,15 +42,13 @@ modeCmd :: Monad m => BotConfig -> Response m
 modeCmd r = fromMsgParser'
     (string ":mode" *> space *> takeByteString) $ \p _ m ->
     runMaybeT $ do
-        NickName n _ _ <- MaybeT. return $ p
-        guard (n == adminUser r)
+        guard (fromAdmin' r p)
         return . mode r $ m
 
 -- | Invite response
 inviteR :: Monad m => BotConfig -> Response m
 inviteR r = Response $ \m@Message{..} -> runMaybeT $ do
-    NickName n _ _ <- MaybeT. return $ msg_prefix
-    guard (isInvite m && n == adminUser r)
+    guard (isInvite m && fromAdmin' r msg_prefix)
     return $ joinChan (last msg_params)
 
 isInvite :: Message -> Bool

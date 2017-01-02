@@ -15,6 +15,7 @@ module Data.Response
     ctcpVersion,
     fromUser,
     fromAdmin,
+    fromAdmin',
     rateLimit,
     rateLimit',
     userLimit,
@@ -109,7 +110,14 @@ notice :: ByteString -> ByteString -> Message
 notice u m = Message Nothing "NOTICE" [u,m]
 
 fromAdmin :: BotConfig -> Message -> Bool
-fromAdmin BotConfig{..} = fromUser adminUser
+fromAdmin BotConfig{..} m = fromMaybe False $ do
+    u <- msgUser m
+    return $ u `elem` adminUsers
+
+fromAdmin' :: BotConfig -> Maybe Prefix -> Bool
+fromAdmin' BotConfig{..} p = fromMaybe False $ do
+    NickName u _ _ <- p
+    return $ u `elem` adminUsers
 
 fromUser :: UserName -> Message -> Bool
 fromUser n Message{..} =

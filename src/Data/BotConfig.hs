@@ -18,13 +18,13 @@ import Data.ByteString.Char8 (ByteString, pack)
 import GHC.Generics
 
 data BotConfig = BotConfig
-    { server    :: HostName
-    , service   :: PortID
-    , chans     :: [Channel]
-    , botnick   :: UserName
-    , botpwd    :: Maybe ByteString
-    , adminUser :: UserName
-    , rateTime  :: NominalDiffTime
+    { server     :: HostName
+    , service    :: PortID
+    , chans      :: [Channel]
+    , botnick    :: UserName
+    , botpwd     :: Maybe ByteString
+    , adminUsers :: [UserName]
+    , rateTime   :: NominalDiffTime
     }
     deriving (Show, Eq, Generic)
 
@@ -41,13 +41,13 @@ instance FromJSON BotConfig
 
 defaultConfig :: BotConfig
 defaultConfig = BotConfig
-    { server    = "irc.snoonet.org"
-    , service   = PortNumber 6667
-    , chans     = ["#linuxmasterrace"]
-    , botnick   = "anActualBotnet"
-    , botpwd    = Nothing
-    , adminUser = "tsahyt"
-    , rateTime  = 300
+    { server     = "irc.snoonet.org"
+    , service    = PortNumber 6667
+    , chans      = ["#linuxmasterrace"]
+    , botnick    = "anActualBotnet"
+    , botpwd     = Nothing
+    , adminUsers = ["tsahyt"]
+    , rateTime   = 300
     }
 
 readConfig :: FilePath -> IO (Maybe BotConfig)
