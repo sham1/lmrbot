@@ -88,6 +88,7 @@ main = do
               , return ctcpVersion
               , return $ joinCmd c
               , return $ leaveCmd c
+              , return $ modeCmd c
               , userLimit' c ulim rms
               , userLimit' c ulim linus
               , userLimit' c ulim theo 

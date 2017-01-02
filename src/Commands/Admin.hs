@@ -1,8 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Commands.Admin
 (
     joinCmd,
-    leaveCmd
+    leaveCmd,
+    modeCmd
 )
 where
 
@@ -10,6 +12,8 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.Maybe
 import Data.BotConfig
+import Data.Monoid
+import Data.ByteString.Char8 (ByteString)
 import Data.Attoparsec.ByteString.Char8
 import Data.Maybe
 import Network.IRC
@@ -30,3 +34,14 @@ leaveCmd r = fromMsgParser'
         chan <- MaybeT . return $ c
         guard (n == adminUser r)
         return . part . fromMaybe chan $ c'
+
+mode :: BotConfig -> ByteString -> Message
+mode BotConfig{..} m = Message Nothing ("MODE " <> botnick <> " " <> m) []
+
+modeCmd :: Monad m => BotConfig -> Response m
+modeCmd r = fromMsgParser'
+    (string ":mode" *> space *> takeByteString) $ \p _ m ->
+    runMaybeT $ do
+        NickName n _ _ <- MaybeT. return $ p
+        guard (n == adminUser r)
+        return . mode r $ m
