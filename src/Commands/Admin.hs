@@ -6,10 +6,12 @@ module Commands.Admin
 )
 where
 
+import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.Maybe
 import Data.BotConfig
 import Data.Attoparsec.ByteString.Char8
+import Data.Maybe
 import Network.IRC
 import Data.Response
 
@@ -21,9 +23,10 @@ joinCmd r = fromMsgParser' (string ":join" *> space *> takeByteString) $
         return $ joinChan c
 
 leaveCmd :: Monad m => BotConfig -> Response m
-leaveCmd r = simpleCmd' ":leave" $ \p c ->
+leaveCmd r = fromMsgParser' 
+    (string ":leave" *> optional (space *> takeByteString)) $ \p c c'->
     runMaybeT $ do
         NickName n _ _ <- MaybeT . return $ p
         chan <- MaybeT . return $ c
         guard (n == adminUser r)
-        return $ part chan
+        return . part . fromMaybe chan $ c'
