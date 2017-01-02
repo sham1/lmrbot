@@ -31,7 +31,6 @@ import Data.Attoparsec.ByteString.Char8
 import Data.Time.Clock.POSIX
 import Data.Maybe
 import Network.IRC
-import Debug.Trace
 
 import qualified Data.Map as M
 
@@ -50,13 +49,13 @@ simpleCmd :: Monad m
           => ByteString 
           -> (Maybe Prefix -> Maybe Channel -> m Message)
           -> Response m
-simpleCmd x f = fromMsgParser (() <$ string x) (\x y _ -> f x y)
+simpleCmd x f = fromMsgParser (() <$ string x) (\a b _ -> f a b)
 
 simpleCmd' :: Monad m 
            => ByteString 
            -> (Maybe Prefix -> Maybe Channel -> m (Maybe Message))
            -> Response m
-simpleCmd' x f = fromMsgParser' (() <$ string x) (\x y _ -> f x y)
+simpleCmd' x f = fromMsgParser' (() <$ string x) (\a b _ -> f a b)
           
 -- | Construct a response given a parser for the content of a PRIVMSG.
 fromMsgParser :: Monad m => Parser a 
@@ -128,8 +127,8 @@ rateLimit c res = do
 rateLimit' :: MonadIO m 
            => BotConfig -> MVar POSIXTime -> Response m -> m (Response m)
 rateLimit' c mvar res = return . Response $ \m -> do
-        res <- respond res m
-        case res of
+        res' <- respond res m
+        case res' of
             Nothing -> return Nothing
             r -> do
                 ts  <- fromMaybe 0 <$> liftIO (tryTakeMVar mvar)
@@ -154,8 +153,8 @@ type UserCooldown = M.Map UserName POSIXTime
 userLimit' :: MonadIO m 
            => BotConfig -> MVar UserCooldown -> Response m -> m (Response m)
 userLimit' c mvar res = return . Response $ \m -> do
-        res <- respond res m
-        case res of
+        res' <- respond res m
+        case res' of
             Nothing -> return Nothing
             r -> do
                 umap <- liftIO (takeMVar mvar)

@@ -13,7 +13,6 @@ where
 
 import Control.Applicative
 import Control.Monad.Random.Class
-import Control.Monad.Trans.Maybe
 import Data.FileEmbed
 import Data.Response
 import Data.Monoid
@@ -39,8 +38,8 @@ quote cmd qs = fromMsgParser (qcmd cmd) $ \_ chan k -> do
         Just r' -> if 0 <= r' && r' <= bounds 
                    then return r' 
                    else getRandomR (0, bounds)
-    let prefix = printf "[%d/%d] " r bounds
-    return $ privmsg (fromMaybe "" chan) (B.pack prefix <> qs ! r)
+    let pfix = printf "[%d/%d] " r bounds
+    return $ privmsg (fromMaybe "" chan) (B.pack pfix <> qs ! r)
 
 rms :: MonadRandom m => Response m
 rms = quote ":rms" rmsQs
@@ -58,4 +57,5 @@ catv :: MonadRandom m => Response m
 catv = quote ":catv" catvQs
     where catvQs = fromEmbed ($(embedFile "quotes/catv"))
 
+fromEmbed :: ByteString -> Vector ByteString
 fromEmbed = V.fromList . B.lines
