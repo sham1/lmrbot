@@ -59,9 +59,19 @@ main = do
     runEffect $ do
         up >-> P.take 2 >-> inbound
         register conf >-> P.map encode >-> P.tee outbound >-> down
+
+        -- wait for and respond to initial ping
         up >-> parseIRC >-> P.dropWhile (not . isPing) >-> P.take 1 
            >-> response [ pingR ] >-> P.tee outbound >-> down
-        liftIO (threadDelay 1000000)
+
+        -- drain until nickserv notice
+        up >-> parseIRC >-> P.dropWhile (not . isNSNotice) >-> P.take 1 
+           >-> P.drain
+
+        -- do nickserv auth
+        auth conf >-> P.map encode >-> P.tee outbound >-> down
+        
+        -- join
         joins conf >-> P.map encode >-> P.tee outbound >-> down
     
     -- initialize commands

@@ -5,6 +5,7 @@ module Data.Response
     Response (..),
     pingR,
     isPing,
+    isNSNotice,
     simpleCmd,
     simpleCmd',
     fromMsgParser,
@@ -44,6 +45,9 @@ pingR = Response $ \m@Message{..} -> pure $ do
 
 isPing :: Message -> Bool
 isPing Message{..} = msg_command == "PING"
+
+isNSNotice :: Message -> Bool
+isNSNotice m@Message{..} = msg_command == "NOTICE" && fromUser "NickServ" m
 
 simpleCmd :: Monad m 
           => ByteString 
