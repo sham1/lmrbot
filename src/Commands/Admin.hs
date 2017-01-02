@@ -14,8 +14,6 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.Maybe
 import Data.BotConfig
-import Data.Monoid
-import Data.ByteString.Char8 (ByteString)
 import Data.Attoparsec.ByteString.Char8
 import Data.Maybe
 import Network.IRC
@@ -34,9 +32,6 @@ leaveCmd r = fromMsgParser'
         chan <- MaybeT . return $ c
         guard (fromAdmin' r p)
         return . part . fromMaybe chan $ c'
-
-mode :: BotConfig -> ByteString -> Message
-mode BotConfig{..} m = Message Nothing ("MODE " <> botnick <> " " <> m) []
 
 modeCmd :: Monad m => BotConfig -> Response m
 modeCmd r = fromMsgParser'

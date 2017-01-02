@@ -46,8 +46,10 @@ bootstrap :: MonadIO m
           -> Consumer ByteString m () 
           -> Effect m ()
 bootstrap conf up down = do
+    let encSend = P.map encode >-> P.tee outbound >-> down
+
     up >-> P.take 2 >-> inbound
-    register conf >-> P.map encode >-> P.tee outbound >-> down
+    register conf >-> encSend
 
     -- wait for and respond to initial ping
     up >-> P.tee inbound >-> parseIRC >-> P.dropWhile (not . isPing) 
@@ -57,12 +59,11 @@ bootstrap conf up down = do
     up >-> P.tee inbound >-> parseIRC >-> P.dropWhile (not . isNSNotice) 
        >-> P.take 1 >-> P.drain
 
-    -- do nickserv auth and wait 1s before joining
-    auth conf >-> P.map encode >-> P.tee outbound >-> down
+    -- do nickserv auth and modes, then wait 1s before joining
+    auth conf >-> encSend
+    modes conf >-> encSend
     liftIO (threadDelay 1000000)
-    
-    -- join
-    joins conf >-> P.map encode >-> P.tee outbound >-> down
+    joins conf >-> encSend
 
 main :: IO ()
 main = do

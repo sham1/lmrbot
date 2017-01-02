@@ -8,6 +8,7 @@ module Pipes.Network
     register,
     joins,
     auth,
+    modes,
     parseIRC,
     filterJust,
     inbound,
@@ -20,6 +21,7 @@ import Data.BotConfig
 import Data.ByteString.Char8 (ByteString)
 import Data.Maybe
 import Data.Monoid
+import Data.Response
 import Network
 import Network.IRC
 import Pipes
@@ -48,7 +50,7 @@ toHandleLine h = do
     liftIO (B.hPutStrLn h x)
     toHandleLine h
 
-register, joins, auth :: Monad m => BotConfig -> Producer Message m ()
+register, joins, auth, modes :: Monad m => BotConfig -> Producer Message m ()
 register BotConfig{..} = do
     yield $ user botnick "0" "*" "bot"
     yield $ nick botnick
@@ -58,6 +60,8 @@ joins BotConfig{..} = mapM_ (yield . joinChan) chans
 auth BotConfig{..} = case botpwd of
     Nothing  -> return ()
     Just pwd -> yield $ privmsg "NickServ" ("IDENTIFY " <> pwd)
+
+modes c@BotConfig{..} = yield $ mode c (mconcat umodes)
 
 parseIRC :: Monad m => Pipe ByteString Message m ()
 parseIRC = P.map decode >-> filterJust

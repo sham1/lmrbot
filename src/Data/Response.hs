@@ -6,6 +6,7 @@ module Data.Response
     pingR,
     isPing,
     isNSNotice,
+    mode,
     simpleCmd,
     simpleCmd',
     fromMsgParser,
@@ -30,6 +31,7 @@ import Control.Monad
 import Control.Monad.Trans.Maybe
 import Control.Monad.IO.Class
 import Data.BotConfig
+import Data.Monoid
 import Data.ByteString.Char8 (ByteString)
 import Data.Attoparsec.ByteString.Char8
 import Data.Time.Clock.POSIX
@@ -51,6 +53,9 @@ isPing Message{..} = msg_command == "PING"
 
 isNSNotice :: Message -> Bool
 isNSNotice m@Message{..} = msg_command == "NOTICE" && fromUser "NickServ" m
+
+mode :: BotConfig -> ByteString -> Message
+mode BotConfig{..} m = Message Nothing ("MODE " <> botnick <> " " <> m) []
 
 simpleCmd :: Monad m 
           => ByteString 

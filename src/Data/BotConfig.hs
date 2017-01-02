@@ -25,6 +25,7 @@ data BotConfig = BotConfig
     , botpwd     :: Maybe ByteString
     , adminUsers :: [UserName]
     , rateTime   :: NominalDiffTime
+    , umodes     :: [ByteString]
     }
     deriving (Show, Eq, Generic)
 
@@ -48,6 +49,7 @@ defaultConfig = BotConfig
     , botpwd     = Nothing
     , adminUsers = ["tsahyt"]
     , rateTime   = 300
+    , umodes     = ["+B"]
     }
 
 readConfig :: FilePath -> IO (Maybe BotConfig)

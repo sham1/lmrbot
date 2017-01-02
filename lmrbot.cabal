@@ -21,6 +21,7 @@ executable lmrbot
   main-is:             Main.hs
   other-modules:       Data.BotConfig
                        Data.Response
+                       Data.HostMask
                        Pipes.Network
                        Commands.Quote
                        Commands.Admin
