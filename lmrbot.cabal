@@ -33,4 +33,5 @@ executable lmrbot
                        vector,
                        file-embed,
                        containers,
-                       time
+                       time,
+                       yaml
