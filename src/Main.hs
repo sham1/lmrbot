@@ -1,25 +1,20 @@
 module Main where
 
-import Control.Monad
-import Control.Monad.Random
+import Control.Monad.Random ()
 import Control.Monad.Trans.Maybe
-import Control.Concurrent (threadDelay)
 import Data.BotConfig
 import Data.ByteString.Char8 (ByteString)
 import Data.Maybe
 import Data.Monoid
 import Data.Response
-import Network
 import Network.IRC
 import Pipes
-import Pipes.ByteString (stdout)
 import Pipes.Network
-import qualified Data.ByteString.Char8 as B
 import qualified Pipes.Prelude as P
-import System.IO (Handle, hSetBuffering, BufferMode (..), hIsEOF)
 
 import Commands.Admin
 import Commands.Quote
+import Commands.Interject
 
 import Options.Applicative
 
@@ -44,6 +39,29 @@ response :: Monad m => [Response m] -> Pipe Message ByteString m ()
 response rsps = P.mapM go >-> filterJust >-> P.map encode
     where go m = listToMaybe . catMaybes <$> mapM (`respond` m) rsps
 
+bootstrap :: MonadIO m 
+          => BotConfig 
+          -> Producer ByteString m () 
+          -> Consumer ByteString m () 
+          -> Effect m ()
+bootstrap conf up down = do
+    up >-> P.take 2 >-> inbound
+    register conf >-> P.map encode >-> P.tee outbound >-> down
+
+    -- wait for and respond to initial ping
+    up >-> parseIRC >-> P.dropWhile (not . isPing) >-> P.take 1 
+       >-> response [ pingR ] >-> P.tee outbound >-> down
+
+    -- drain until nickserv notice
+    up >-> parseIRC >-> P.dropWhile (not . isNSNotice) >-> P.take 1 
+       >-> P.drain
+
+    -- do nickserv auth
+    auth conf >-> P.map encode >-> P.tee outbound >-> down
+    
+    -- join
+    joins conf >-> P.map encode >-> P.tee outbound >-> down
+
 main :: IO ()
 main = do
     opts <- execParser optInfo
@@ -55,26 +73,7 @@ main = do
     let up   = fromHandleLine h
         down = toHandleLine h
 
-    -- bootstrap commands for nick and initial join
-    runEffect $ do
-        up >-> P.take 2 >-> inbound
-        register conf >-> P.map encode >-> P.tee outbound >-> down
-
-        -- wait for and respond to initial ping
-        up >-> parseIRC >-> P.dropWhile (not . isPing) >-> P.take 1 
-           >-> response [ pingR ] >-> P.tee outbound >-> down
-
-        -- drain until nickserv notice
-        up >-> parseIRC >-> P.dropWhile (not . isNSNotice) >-> P.take 1 
-           >-> P.drain
-
-        -- do nickserv auth
-        auth conf >-> P.map encode >-> P.tee outbound >-> down
-        
-        -- join
-        joins conf >-> P.map encode >-> P.tee outbound >-> down
-    
-    -- initialize commands
+    runEffect $ bootstrap conf up down 
     comms' <- sequence (comms conf)
 
     -- bot loop
@@ -90,4 +89,5 @@ main = do
                     , userLimit c linus
                     , userLimit c theo 
                     , userLimit c catv
+                    , rateLimit c interject
                     ]

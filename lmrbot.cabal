@@ -24,6 +24,7 @@ executable lmrbot
                        Pipes.Network
                        Commands.Quote
                        Commands.Admin
+                       Commands.Interject
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts
   build-depends:       base >= 4.7 && < 5,
