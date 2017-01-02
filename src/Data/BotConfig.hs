@@ -22,6 +22,7 @@ data BotConfig = BotConfig
     , service   :: PortID
     , chans     :: [Channel]
     , botnick   :: UserName
+    , botpwd    :: Maybe ByteString
     , adminUser :: UserName
     , rateTime  :: NominalDiffTime
     }
@@ -44,6 +45,7 @@ defaultConfig = BotConfig
     , service   = PortNumber 6667
     , chans     = ["#linuxmasterrace"]
     , botnick   = "anActualBotnet"
+    , botpwd    = Nothing
     , adminUser = "tsahyt"
     , rateTime  = 300
     }
