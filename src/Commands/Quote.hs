@@ -28,17 +28,15 @@ import Text.Printf
 type Quote = ByteString
 
 qcmd :: ByteString -> Parser (Maybe Int)
-qcmd cmd = string cmd *> optional (read <$> (space *> many1 digit))
+qcmd cmd = string cmd *> space *> optional (signed decimal)
 
 quote :: MonadRandom m => ByteString -> Vector Quote -> Response m
 quote cmd qs = fromMsgParser (qcmd cmd) $ \_ chan k -> do
-    let bounds = pred (V.length qs)
+    let bounds = V.length qs
     r <- case k of
-        Nothing -> getRandomR (0, bounds)
-        Just r' -> if 0 <= r' && r' <= bounds 
-                   then return r' 
-                   else getRandomR (0, bounds)
-    let pfix = printf "[%d/%d] " r bounds
+        Nothing -> getRandomR (0, pred bounds)
+        Just r' -> return (r' `mod` bounds)
+    let pfix = printf "[%d/%d] " r (pred bounds)
     return $ privmsg (fromMaybe "" chan) (B.pack pfix <> qs ! r)
 
 rms :: MonadRandom m => Response m
