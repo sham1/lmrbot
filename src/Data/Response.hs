@@ -18,7 +18,9 @@ module Data.Response
     rateLimit,
     rateLimit',
     userLimit,
-    userLimit'
+    userLimit',
+    emptyCooldown,
+    UserCooldown
 )
 where
 
@@ -151,6 +153,9 @@ userLimit c res = do
     userLimit' c mvar res
 
 type UserCooldown = M.Map UserName POSIXTime
+
+emptyCooldown :: MonadIO m => m (MVar UserCooldown)
+emptyCooldown = liftIO (newMVar M.empty)
 
 -- | Like 'userLimit' but supplying an external cooldown map. This is useful for
 -- sharing cooldown times between commands.

@@ -74,20 +74,23 @@ main = do
         down = toHandleLine h
 
     runEffect $ bootstrap conf up down 
-    comms' <- sequence (comms conf)
+
+    cooldown <- emptyCooldown
+    comms' <- sequence (comms conf cooldown)
 
     -- bot loop
     runEffect $ 
         up >-> P.tee inbound >-> parseIRC >-> response comms'
            >-> P.tee outbound >-> down
 
-    where comms c = [ return pingR
-                    , return ctcpVersion
-                    , return $ joinCmd c
-                    , return $ leaveCmd c
-                    , userLimit c rms
-                    , userLimit c linus
-                    , userLimit c theo 
-                    , userLimit c catv
-                    , rateLimit c interject
-                    ]
+    where comms c ulim = 
+              [ return pingR
+              , return ctcpVersion
+              , return $ joinCmd c
+              , return $ leaveCmd c
+              , userLimit' c ulim rms
+              , userLimit' c ulim linus
+              , userLimit' c ulim theo 
+              , userLimit' c ulim catv
+              , rateLimit c interject
+              ]
