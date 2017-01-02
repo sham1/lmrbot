@@ -1,9 +1,8 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import Control.Monad
 import Control.Monad.Random
+import Control.Monad.Trans.Maybe
 import Control.Concurrent (threadDelay)
 import Data.BotConfig
 import Data.ByteString.Char8 (ByteString)
@@ -14,6 +13,7 @@ import Network
 import Network.IRC
 import Pipes
 import Pipes.ByteString (stdout)
+import Pipes.Network
 import qualified Data.ByteString.Char8 as B
 import qualified Pipes.Prelude as P
 import System.IO (Handle, hSetBuffering, BufferMode (..), hIsEOF)
@@ -21,49 +21,36 @@ import System.IO (Handle, hSetBuffering, BufferMode (..), hIsEOF)
 import Commands.Admin
 import Commands.Quote
 
-network :: MonadIO m => BotConfig -> m Handle
-network BotConfig{..} = liftIO $ do
-    h <- connectTo server service
-    hSetBuffering h NoBuffering
-    return h
+import Options.Applicative
 
-fromHandleLine :: MonadIO m => Handle -> Producer ByteString m ()
-fromHandleLine h = do
-    eof <- liftIO $ hIsEOF h
-    unless eof $ do
-        x <- liftIO $ B.hGetLine h
-        yield x
-        fromHandleLine h
+data Options = Options
+    { configPath :: Maybe FilePath
+    }
 
-toHandleLine :: MonadIO m => Handle -> Consumer ByteString m ()
-toHandleLine h = do
-    x <- await
-    liftIO (B.hPutStrLn h x)
-    toHandleLine h
+optParser :: Parser Options
+optParser = Options 
+    <$> optional 
+        (strOption ( long "config" 
+                  <> metavar "FILE" 
+                  <> help "Config File Location" ))
 
-register, joins :: Monad m => BotConfig -> Producer Message m ()
-register BotConfig{..} = do
-    yield $ user botnick "0" "*" "bot"
-    yield $ nick botnick
-
-joins BotConfig {..} = mapM_ (yield . joinChan) chans
-
-parseIRC :: Monad m => Pipe ByteString Message m ()
-parseIRC = P.map decode >-> filterJust
-
-filterJust :: Monad m => Pipe (Maybe a) a m ()
-filterJust = P.filter isJust >-> P.map fromJust
+optInfo :: ParserInfo Options
+optInfo = info (helper <*> optParser)
+    ( fullDesc
+   <> progDesc "An IRC Bot"
+   <> header "lmrbot - A spambot" )
 
 response :: Monad m => [Response m] -> Pipe Message ByteString m ()
 response rsps = P.mapM go >-> filterJust >-> P.map encode
     where go m = listToMaybe . catMaybes <$> mapM (`respond` m) rsps
 
-inbound, outbound :: MonadIO m => Consumer' ByteString m ()
-inbound = P.map (\x -> "<-- " <> x <> "\r\n") >-> stdout
-outbound = P.map (\x -> "--> " <> x <> "\r\n") >-> stdout
-
 main :: IO ()
 main = do
+    opts <- execParser optInfo
+    conf <- fmap (fromMaybe defaultConfig) . runMaybeT $ do
+                p <- MaybeT . return $ configPath opts
+                MaybeT $ readConfig p
+    print conf
     h <- network conf
     let up   = fromHandleLine h
         down = toHandleLine h
@@ -78,20 +65,19 @@ main = do
         joins conf >-> P.map encode >-> P.tee outbound >-> down
     
     -- initialize commands
-    comms' <- sequence comms
+    comms' <- sequence (comms conf)
 
     -- bot loop
     runEffect $ 
         up >-> P.tee inbound >-> parseIRC >-> response comms'
            >-> P.tee outbound >-> down
 
-    where conf  = defaultConfig
-          comms = [ return pingR
-                  , return ctcpVersion
-                  , return $ joinCmd conf
-                  , return $ leaveCmd conf
-                  , userLimit conf rms
-                  , userLimit conf linus
-                  , userLimit conf theo 
-                  , userLimit conf catv
-                  ]
+    where comms c = [ return pingR
+                    , return ctcpVersion
+                    , return $ joinCmd c
+                    , return $ leaveCmd c
+                    , userLimit c rms
+                    , userLimit c linus
+                    , userLimit c theo 
+                    , userLimit c catv
+                    ]

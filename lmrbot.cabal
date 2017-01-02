@@ -34,4 +34,5 @@ executable lmrbot
                        file-embed,
                        containers,
                        time,
-                       yaml
+                       yaml,
+                       optparse-applicative
