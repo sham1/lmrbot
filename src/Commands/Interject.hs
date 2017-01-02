@@ -28,11 +28,16 @@ emptyInterject = MkI Nothing Nothing Nothing
 parser :: Parser Interjection
 parser = choice [ try param, string ":interject" *> pure emptyInterject ]
     where param = MkI
-              <$> (string ":interject" *> skipSpace 
-                                     *> optional (many1 (satisfy isAlphaNum)))
-              <*> (satisfy isSep *> optional (many1 (satisfy isAlphaNum)))
-              <*> (satisfy isSep *> optional (many1 (satisfy isAlphaNum)))
+              <$> (string ":interject" *> skipSpace *> comp)
+              <*> (satisfy isSep *> comp)
+              <*> (satisfy isSep *> comp)
+
           isSep c = isSpace c || inClass ",;:." c
+
+          comp = optional (choice [ quoted, singleWord ])
+          quoted = char '"' *> many1 (satisfy charSet <|> space) <* char '"'
+          singleWord = many1 (satisfy charSet)
+          charSet x = isAlphaNum x || inClass "-_" x
 
 interjection :: String
 interjection = 
