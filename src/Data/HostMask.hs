@@ -46,8 +46,8 @@ maskComp cs = N.fromList <$> many1 (choice [ wildcard, strComp ])
           strComp   = MaskString . pack <$> many1 (satisfy cs)
 
 csNick, csHost :: Char -> Bool
-csNick x = isAlphaNum x || inClass "[]{}-_^|\\" x
-csHost x = csNick x || inClass "/."
+csNick x = isAlphaNum x || inClass "[]{}-_^|\\`" x
+csHost x = isAlphaNum x || inClass "-/.:" x
 
 matcher :: HostMask -> Parser ()
 matcher HostMask{..} = () <$ 
