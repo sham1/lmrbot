@@ -42,12 +42,12 @@ instance FromJSON BotConfig
 
 defaultConfig :: BotConfig
 defaultConfig = BotConfig
-    { server     = "irc.snoonet.org"
+    { server     = "irc.freenode.net"
     , service    = PortNumber 6667
-    , chans      = ["#linuxmasterrace"]
-    , botnick    = "anActualBotnet"
+    , chans      = []
+    , botnick    = "lmrbot"
     , botpwd     = Nothing
-    , adminUsers = ["tsahyt"]
+    , adminUsers = []
     , rateTime   = 300
     , umodes     = ["+B"]
     }

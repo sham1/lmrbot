@@ -71,7 +71,6 @@ main = do
     conf <- fmap (fromMaybe defaultConfig) . runMaybeT $ do
                 p <- MaybeT . return $ configPath opts
                 MaybeT $ readConfig p
-    print conf
     h <- network conf
     let up   = fromHandleLine h
         down = toHandleLine h
