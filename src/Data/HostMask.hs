@@ -14,7 +14,6 @@ import Control.Applicative
 import Data.Char (isAlphaNum)
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString, pack)
-import Data.Traversable
 import Data.Either (isRight)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as N
@@ -37,24 +36,26 @@ parseHostMask = parseOnly hostMask
 
 hostMask :: Parser HostMask
 hostMask = HostMask
-    <$> (maskComp <* char '!')
-    <*> (maskComp <* char '@')
-    <*> (maskComp <* endOfInput)
+    <$> (maskComp csNick <* char '!')
+    <*> (maskComp csNick <* char '@')
+    <*> (maskComp csHost <* endOfInput)
 
-maskComp :: Parser (NonEmpty MaskComp)
-maskComp = N.fromList <$> many1 (choice [ wildcard, strComp ])
+maskComp :: (Char -> Bool) -> Parser (NonEmpty MaskComp)
+maskComp cs = N.fromList <$> many1 (choice [ wildcard, strComp ])
     where wildcard  = MaskWildCard <$ char '*'
-          strComp   = MaskString . pack <$> many1 (satisfy charSet)
+          strComp   = MaskString . pack <$> many1 (satisfy cs)
 
-charSet x = isAlphaNum x || inClass "[]-_^.|" x
+csNick, csHost :: Char -> Bool
+csNick x = isAlphaNum x || inClass "[]{}-_^.|\\" x
+csHost x = csNick x || x == '/'
 
 matcher :: HostMask -> Parser ()
 matcher HostMask{..} = () <$ 
-    (go nick *> char '!' *> go nick *> char '@' *> go host)
-    where go = traverse matchComp
-          matchComp :: MaskComp -> Parser ByteString
-          matchComp MaskWildCard   = pack <$> many (satisfy charSet)
-          matchComp (MaskString x) = string x
+    (go csNick nick *> char '!' *> go csNick user *> char '@' *> go csHost host)
+    where go cs = traverse (matchComp cs)
+          matchComp :: (Char -> Bool) -> MaskComp -> Parser ByteString
+          matchComp cs MaskWildCard   = pack <$> many (satisfy cs)
+          matchComp _  (MaskString x) = string x
 
 matchHostMask :: HostMask -> ByteString -> Bool
 matchHostMask mask x = isRight (parseOnly (matcher mask) x)
