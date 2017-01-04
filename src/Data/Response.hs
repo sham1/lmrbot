@@ -181,7 +181,7 @@ userLimit' c mvar res = return . Response $ \m -> do
             r -> do
                 umap <- liftIO (takeMVar mvar)
                 tc   <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
-                let u     = fromMaybe "__unknown__" $ msgUser m
+                let u     = fromMaybe ".unknown." $ msgUser m
                     ts    = fromMaybe 0 $ M.lookup u umap
                     umap' = M.insert u tc umap
                 liftIO (putMVar mvar umap')
