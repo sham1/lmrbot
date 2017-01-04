@@ -7,7 +7,8 @@ module Commands.Quote
     rms,
     linus,
     theo,
-    catv
+    catv,
+    inspircd
 )
 where
 
