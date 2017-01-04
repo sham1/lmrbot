@@ -96,6 +96,5 @@ main = do
               , userLimit' c ulim linus
               , userLimit' c ulim theo 
               , userLimit' c ulim catv
-              , userLimit' c ulim inspircd
               , rateLimit c interject
               ]

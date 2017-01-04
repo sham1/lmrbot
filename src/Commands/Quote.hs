@@ -7,8 +7,7 @@ module Commands.Quote
     rms,
     linus,
     theo,
-    catv,
-    inspircd
+    catv
 )
 where
 
@@ -55,10 +54,6 @@ theo = quote ":theo" theoQs
 catv :: MonadRandom m => Response m
 catv = quote ":catv" catvQs
     where catvQs = fromEmbed ($(embedFile "quotes/catv"))
-    
-inspircd :: MonadRandom m => Response m
-inspircd = quote ":inspircd" inspircdQs
-    where inspircdQs = fromEmbed ($(embedFile "quotes/inspircd"))
 
 fromEmbed :: ByteString -> Vector ByteString
 fromEmbed = V.fromList . B.lines
