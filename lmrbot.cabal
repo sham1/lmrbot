@@ -15,6 +15,7 @@ extra-source-files:  README.rst
                      quotes/rms
                      quotes/linus
                      quotes/theo
+                     quotes/inspircd
 
 executable lmrbot
   hs-source-dirs:      src
