@@ -27,30 +27,28 @@ data InterjectionLength = Short | Full
     deriving (Show, Eq)
 
 emptyInterject :: Interjection
-emptyInterject = MkI Nothing Nothing Nothing Full
+emptyInterject = MkI Nothing Nothing Nothing Short
 
 parser :: Parser Interjection
-parser = choice [ try short
-                , try param
-                , string ":interject" *> pure emptyInterject ]
-    where param = MkI
+parser = choice [ try full , try short , empt ]
+    where empt  = string ":interject" *> pure emptyInterject
+          full  = MkI
               <$> (string ":interject" *> skipSpace *> comp)
               <*> (satisfy isSep *> comp)
               <*> (satisfy isSep *> comp)
               <*> pure Full
           
           short = MkI
-              <$> (string ":interject'" *> skipSpace *> comp)
+              <$> (string ":interject" *> skipSpace *> comp)
               <*> (satisfy isSep *> comp)
               <*> pure Nothing
               <*> pure Short
 
-          isSep c = isSpace c || inClass ",;:." c
-
-          comp = optional (choice [ quoted, singleWord ])
+          isSep c = isSpace c || inClass ",;:./" c
+          comp = Just <$> choice [ quoted, singleWord ]
           quoted = char '"' *> many1 (satisfy charSet <|> space) <* char '"'
           singleWord = many1 (satisfy charSet)
-          charSet x = isAlphaNum x || inClass "-_" x
+          charSet x = isAlphaNum x || inClass "-_!@#$%^&*()" x
 
 interjection :: String
 interjection = 
