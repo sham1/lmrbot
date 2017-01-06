@@ -47,4 +47,5 @@ executable lmrbot
                        servant,
                        servant-client,
                        mtl,
-                       http-client
+                       http-client,
+                       http-client-tls
