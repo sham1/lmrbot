@@ -19,9 +19,10 @@ import Network.IRC
 import Data.Response
 import Data.BotConfig
 import Data.Maybe
+import Data.Monoid
 import Data.Proxy
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 (ByteString, unpack, pack)
+import Data.ByteString.Char8 (unpack, pack)
 import Network.HTTP.Client (Manager, newManager, defaultManagerSettings)
 
 newtype Query = Query String
@@ -50,10 +51,11 @@ baseUrl = BaseUrl Http "api.wolframalpha.com" 80 ""
 
 wolfram :: MonadIO m => Manager -> Maybe WolframAPIKey -> Response m
 wolfram _ Nothing = emptyResponse
-wolfram man appid = fromMsgParser parser $ \_ chan q -> do
+wolfram man appid = fromMsgParser parser $ \p chan q -> do
+    let u = fromMaybe "Dave" $ msgUser' p
     res <- liftIO $
         runExceptT (query appid (Just q) man baseUrl)
     return $ case res of
-        Left _ -> privmsg (fromMaybe "" chan) 
-                      "Error while querying WolframAlpha"
+        Left _ -> privmsg (fromMaybe "" chan) $
+                      "I'm sorry " <> u <> ", I'm afraid I can't do that."
         Right r -> privmsg (fromMaybe "" chan) (pack r)

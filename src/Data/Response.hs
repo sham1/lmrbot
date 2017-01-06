@@ -18,6 +18,8 @@ module Data.Response
     fromUser,
     fromAdmin,
     fromAdmin',
+    msgUser,
+    msgUser',
     rateLimit,
     rateLimit',
     userLimit,
@@ -135,10 +137,11 @@ fromUser n Message{..} =
         _ -> False
 
 msgUser :: Message -> Maybe UserName
-msgUser Message{..} =
-    case msg_prefix of
-        Just (NickName u _ _) -> Just u
-        _ -> Nothing
+msgUser Message{..} = msgUser' msg_prefix
+
+msgUser' :: Maybe Prefix -> Maybe UserName
+msgUser' (Just (NickName u _ _)) = Just u
+msgUser' _ = Nothing
 
 -- | Rate limit a 'Response' according to values in the 'BotConfig'
 rateLimit :: MonadIO m => BotConfig -> Response m -> m (Response m)
