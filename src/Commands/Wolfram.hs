@@ -6,7 +6,6 @@
 module Commands.Wolfram
 (
     wolfram,
-    WolframAPIKey (..),
     newManager,
     defaultManagerSettings
 )
@@ -18,6 +17,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Except
 import Network.IRC
 import Data.Response
+import Data.BotConfig
 import Data.Maybe
 import Data.Proxy
 import Data.Attoparsec.ByteString.Char8
@@ -31,9 +31,6 @@ parser :: Parser Query
 parser = Query . unpack <$>
     (char ':' *> choice [ string "hal", string "wa" ] 
               *> skipSpace *> takeByteString)
-
-newtype WolframAPIKey = AppId String
-    deriving (Eq, Show, Ord, ToHttpApiData)
 
 type WolframSimple = "v1" 
                   :> "result" 
@@ -51,10 +48,11 @@ query = client (Proxy :: Proxy WolframSimple)
 baseUrl :: BaseUrl
 baseUrl = BaseUrl Http "api.wolframalpha.com" 80 ""
 
-wolfram :: MonadIO m => Manager -> WolframAPIKey -> Response m
+wolfram :: MonadIO m => Manager -> Maybe WolframAPIKey -> Response m
+wolfram _ Nothing = emptyResponse
 wolfram man appid = fromMsgParser parser $ \_ chan q -> do
     res <- liftIO $
-        runExceptT (query (Just appid) (Just q) man baseUrl)
+        runExceptT (query appid (Just q) man baseUrl)
     return $ case res of
         Left _ -> privmsg (fromMaybe "" chan) 
                       "Error while querying WolframAlpha"

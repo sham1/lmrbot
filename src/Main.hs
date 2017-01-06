@@ -99,5 +99,5 @@ main = do
               , userLimit' c ulim theo 
               , userLimit' c ulim catv
               , rateLimit c interject
-              , return $ wolfram man (AppId "")
+              , return $ wolfram man (wolframAPI c)
               ]

@@ -3,6 +3,7 @@
 module Data.Response
 (
     Response (..),
+    emptyResponse,
     pingR,
     isPing,
     isNSNotice,
@@ -41,6 +42,9 @@ import Network.IRC
 import qualified Data.Map as M
 
 newtype Response m = Response { respond :: Message -> m (Maybe Message) }
+
+emptyResponse :: Applicative m => Response m
+emptyResponse = Response $ \_ -> pure Nothing
 
 -- | Respond to standard ping messages
 pingR :: Applicative m => Response m

@@ -1,10 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Data.BotConfig
 (
     BotConfig (..),
+    WolframAPIKey (..),
     defaultConfig,
     readConfig
 )
@@ -15,7 +17,13 @@ import Network.IRC
 import Data.Time.Clock
 import Data.Yaml
 import Data.ByteString.Char8 (ByteString, pack)
+import Servant.API
 import GHC.Generics
+
+newtype WolframAPIKey = AppId String
+    deriving (Eq, Show, Ord, ToHttpApiData, Generic)
+
+instance FromJSON WolframAPIKey
 
 data BotConfig = BotConfig
     { server     :: HostName
@@ -26,6 +34,7 @@ data BotConfig = BotConfig
     , adminUsers :: [UserName]
     , rateTime   :: NominalDiffTime
     , umodes     :: [ByteString]
+    , wolframAPI :: Maybe WolframAPIKey
     }
     deriving (Show, Eq, Generic)
 
@@ -50,6 +59,7 @@ defaultConfig = BotConfig
     , adminUsers = []
     , rateTime   = 300
     , umodes     = ["+B"]
+    , wolframAPI = Nothing
     }
 
 readConfig :: FilePath -> IO (Maybe BotConfig)
