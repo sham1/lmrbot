@@ -152,11 +152,9 @@ rateLimit' c mvar res = return . Response $ \m -> do
             r -> do
                 ts  <- fromMaybe 0 <$> liftIO (tryTakeMVar mvar)
                 tc  <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
-                liftIO (putMVar mvar tc)
-                liftIO (print ts)
-                return $ if tc - ts <= rateTime c && not (fromAdmin c m)
-                         then Nothing
-                         else r
+                if tc - ts <= rateTime c && not (fromAdmin c m)
+                    then return Nothing
+                    else liftIO (putMVar mvar tc) >> return r
 
 -- | Rate limit a 'Response' according to value in config, but for each user
 -- individually, i.e. each user gets to use the command every X seconds at most.
@@ -184,7 +182,6 @@ userLimit' c mvar res = return . Response $ \m -> do
                 let u     = fromMaybe ".unknown." $ msgUser m
                     ts    = fromMaybe 0 $ M.lookup u umap
                     umap' = M.insert u tc umap
-                liftIO (putMVar mvar umap')
-                return $ if tc - ts <= rateTime c && not (fromAdmin c m)
-                         then Nothing
-                         else r
+                if tc - ts <= rateTime c && not (fromAdmin c m)
+                    then return Nothing
+                    else liftIO (putMVar mvar umap') >> return r
