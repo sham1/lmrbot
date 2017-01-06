@@ -16,6 +16,7 @@ import qualified Pipes.Prelude as P
 import Commands.Admin
 import Commands.Quote
 import Commands.Interject
+import Commands.Wolfram
 
 import Options.Applicative
 
@@ -72,20 +73,21 @@ main = do
                 p <- MaybeT . return $ configPath opts
                 MaybeT $ readConfig p
     h <- network conf
+    man <- newManager defaultManagerSettings
     let up   = fromHandleLine h
         down = toHandleLine h
 
     runEffect $ bootstrap conf up down 
 
     cooldown <- emptyCooldown
-    comms' <- sequence (comms conf cooldown)
+    comms' <- sequence (comms conf cooldown man)
 
     -- bot loop
     runEffect $ 
         up >-> P.tee inbound >-> parseIRC >-> response comms'
            >-> P.tee outbound >-> down
 
-    where comms c ulim = 
+    where comms c ulim man = 
               [ return pingR
               , return $ inviteR c
               , return ctcpVersion
@@ -97,4 +99,5 @@ main = do
               , userLimit' c ulim theo 
               , userLimit' c ulim catv
               , rateLimit c interject
+              , return $ wolfram man (AppId "")
               ]

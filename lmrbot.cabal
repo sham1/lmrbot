@@ -15,7 +15,6 @@ extra-source-files:  README.rst
                      quotes/rms
                      quotes/linus
                      quotes/theo
-                     quotes/inspircd
 
 executable lmrbot
   hs-source-dirs:      src
@@ -27,6 +26,7 @@ executable lmrbot
                        Commands.Quote
                        Commands.Admin
                        Commands.Interject
+                       Commands.Wolfram
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts
   build-depends:       base >= 4.7 && < 5,
@@ -43,4 +43,8 @@ executable lmrbot
                        containers,
                        time,
                        yaml,
-                       optparse-applicative
+                       optparse-applicative,
+                       servant,
+                       servant-client,
+                       mtl,
+                       http-client
