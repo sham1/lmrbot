@@ -8,7 +8,6 @@ module Commands.Reddit
     startrek,
     wcgw,
     meme,
-    windows,
     randomReddit,
 )
 where
@@ -70,6 +69,3 @@ wcgw m = randomReddit m (SubReddit "whatcouldgowrong") ":wcgw"
 
 meme :: MonadIO m => Manager -> Response m
 meme m = randomReddit m (SubReddit "linuxmemes") ":meme"
-
-windows :: MonadIO m => Manager -> Response m
-windows m = randomReddit m (SubReddit "catastrophicfailure") ":windows"
