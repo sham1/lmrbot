@@ -31,18 +31,14 @@ parser = Query . unpack <$>
     (char ':' *> choice [ string "hal", string "wa" ] 
               *> skipSpace *> takeByteString)
 
-type WolframSimple = "v1" 
-                  :> "result" 
-                  :> QueryParam "appid" WolframAPIKey 
-                  :> QueryParam "i" Query 
-                  :> Get '[PlainText] String
+type WolframShort = "v1" 
+                 :> "result" 
+                 :> QueryParam "appid" WolframAPIKey 
+                 :> QueryParam "i" Query 
+                 :> Get '[PlainText] String
 
-query :: Maybe WolframAPIKey 
-      -> Maybe Query 
-      -> Manager 
-      -> BaseUrl 
-      -> ClientM String
-query = client (Proxy :: Proxy WolframSimple)
+shortAnswer :: Client WolframShort
+shortAnswer = client (Proxy :: Proxy WolframShort)
 
 baseUrl :: BaseUrl
 baseUrl = BaseUrl Http "api.wolframalpha.com" 80 ""
@@ -52,7 +48,7 @@ wolfram _ Nothing = emptyResponse
 wolfram man appid = fromMsgParser parser $ \p chan q -> do
     let u = fromMaybe "Dave" $ msgUser' p
     res <- liftIO $
-        runExceptT (query appid (Just q) man baseUrl)
+        runExceptT (shortAnswer appid (Just q) man baseUrl)
     return $ case res of
         Left _ -> privmsg (fromMaybe "" chan) $
                       "I'm sorry " <> u <> ", I'm afraid I can't do that."

@@ -6,6 +6,9 @@
 module Commands.Reddit
 (
     startrek,
+    wcgw,
+    meme,
+    windows,
     randomReddit,
 )
 where
@@ -61,3 +64,12 @@ randomReddit man sub cmd = simpleCmd' cmd $ \_ chan -> do
 
 startrek :: MonadIO m => Manager -> Response m
 startrek m = randomReddit m (SubReddit "startrekgifs") ":startrek"
+
+wcgw :: MonadIO m => Manager -> Response m
+wcgw m = randomReddit m (SubReddit "whatcouldgowrong") ":wcgw"
+
+meme :: MonadIO m => Manager -> Response m
+meme m = randomReddit m (SubReddit "linuxmemes") ":meme"
+
+windows :: MonadIO m => Manager -> Response m
+windows m = randomReddit m (SubReddit "catastrophicfailure") ":windows"
