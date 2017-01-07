@@ -1,0 +1,12 @@
+server: "irc.freenode.net"
+service: 6667
+chans:
+    - "#botnet"
+botnick: "botnet"
+botpwd: "somePassword"
+adminUsers: 
+    - "the_bofh"
+rateTime: 300
+umodes:
+    - "+B"
+wolframAPI: "DEMO"
