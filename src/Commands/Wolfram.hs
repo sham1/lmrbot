@@ -5,9 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Commands.Wolfram
 (
-    wolfram,
-    newManager,
-    defaultManagerSettings
+    wolfram
 )
 where
 
@@ -23,7 +21,7 @@ import Data.Monoid
 import Data.Proxy
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (unpack, pack)
-import Network.HTTP.Client (Manager, newManager, defaultManagerSettings)
+import Network.HTTP.Client (Manager)
 
 newtype Query = Query String
     deriving (Eq, Show, Ord, ToHttpApiData)

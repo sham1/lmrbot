@@ -27,6 +27,7 @@ executable lmrbot
                        Commands.Admin
                        Commands.Interject
                        Commands.Wolfram
+                       Commands.Reddit
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts
   build-depends:       base >= 4.7 && < 5,
@@ -47,4 +48,6 @@ executable lmrbot
                        servant,
                        servant-client,
                        mtl,
-                       http-client
+                       http-client,
+                       http-client-tls,
+                       aeson
