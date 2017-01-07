@@ -9,6 +9,8 @@ module Commands.Reddit
     wcgw,
     meme,
     randomReddit,
+    wallpaper,
+    wallpaperWide
 )
 where
 
@@ -69,3 +71,10 @@ wcgw m = randomReddit m (SubReddit "whatcouldgowrong") ":wcgw"
 
 meme :: MonadIO m => Manager -> Response m
 meme m = randomReddit m (SubReddit "linuxmemes") ":meme"
+
+wallpaper :: MonadIO m => Manager -> Response m
+wallpaper m = randomReddit m (SubReddit "wallpapers") ":wallpaper"
+
+wallpaperWide :: MonadIO m => Manager -> Response m
+wallpaperWide m = randomReddit m (SubReddit "widescreenwallpaper") 
+                    ":wallpaper wide"
