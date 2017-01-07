@@ -13,10 +13,14 @@ import Pipes
 import Pipes.Network
 import qualified Pipes.Prelude as P
 
+import Network.HTTP.Client (newManager)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+
 import Commands.Admin
 import Commands.Quote
 import Commands.Interject
 import Commands.Wolfram
+import Commands.Reddit
 
 import Options.Applicative
 
@@ -73,7 +77,7 @@ main = do
                 p <- MaybeT . return $ configPath opts
                 MaybeT $ readConfig p
     h <- network conf
-    man <- newManager defaultManagerSettings
+    man <- newManager tlsManagerSettings
     let up   = fromHandleLine h
         down = toHandleLine h
 
@@ -98,6 +102,7 @@ main = do
               , userLimit' c ulim linus
               , userLimit' c ulim theo 
               , userLimit' c ulim catv
+              , userLimit' c ulim (startrek man)
               , rateLimit c interject
               , return $ wolfram man (wolframAPI c)
               ]

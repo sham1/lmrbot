@@ -5,9 +5,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Commands.Reddit
 (
+    startrek,
     randomReddit,
-    newManager,
-    tlsManagerSettings
 )
 where
 
@@ -15,12 +14,13 @@ import Servant.API
 import Servant.Client
 import Control.Monad.IO.Class
 import Control.Monad.Except
-import Data.ByteString.Char8 (ByteString)
+import Data.ByteString.Char8 (ByteString, pack)
 import Data.Proxy
+import Data.Maybe
 import Data.Response
-import Network.HTTP.Client (Manager, newManager, defaultManagerSettings)
-import Network.HTTP.Client.TLS
-import Data.Yaml
+import Network.IRC
+import Network.HTTP.Client (Manager)
+import Data.Aeson
 import qualified Data.Vector as V
 
 newtype SubReddit = SubReddit String
@@ -41,15 +41,23 @@ data Reddit = Reddit { url :: String }
     deriving (Show, Eq, Ord)
 
 instance FromJSON Reddit where
-    parseJSON (Array v) = parseJSON (v V.! 0)
-    parseJSON (Object v) = do
-        --link <- v .: "link" 
-        url  <- v .: "url"
-        return $ Reddit url
-    parseJSON _ = error "Malformed reddit response"
+    parseJSON (Array v) = do
+        let Object o0 = v V.! 0
+        Object o1 <- o0 .: "data"
+        Array o2 <- o1 .: "children"
+        let Object o3 = o2 V.! 0
+        Object o4 <- o3 .: "data"
+        u <- o4 .: "url"
+        return $ Reddit u
+    parseJSON _ = error "Error parsing reddit response"
 
 randomReddit :: MonadIO m => Manager -> SubReddit -> ByteString -> Response m
-randomReddit man sub cmd = simpleCmd cmd $ \_ chan -> do
+randomReddit man sub cmd = simpleCmd' cmd $ \_ chan -> do
     let uagent = Just "linux:tsahyt/lmrbot:v0.1.0 (by /u/tsahyt)"
     res <- liftIO $ runExceptT (query sub uagent man baseUrl)
-    return undefined
+    case res of
+        Left _  -> return Nothing
+        Right r -> return . Just $ privmsg (fromMaybe "" chan) (pack $ url r)
+
+startrek :: MonadIO m => Manager -> Response m
+startrek m = randomReddit m (SubReddit "startrekgifs") ":startrek"
