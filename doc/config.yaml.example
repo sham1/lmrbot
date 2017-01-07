@@ -10,3 +10,4 @@ rateTime: 300
 umodes:
     - "+B"
 wolframAPI: "DEMO"
+silent: true
