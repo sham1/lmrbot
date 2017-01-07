@@ -105,7 +105,6 @@ main = do
               , userLimit' c ulim (startrek man)
               , userLimit' c ulim (wcgw man)
               , userLimit' c ulim (meme man)
-              , userLimit' c ulim (wallpaperWide man)
               , userLimit' c ulim (wallpaper man)
               , rateLimit c interject
               , return $ wolfram man (wolframAPI c)
