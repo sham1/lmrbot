@@ -35,6 +35,7 @@ data BotConfig = BotConfig
     , rateTime   :: NominalDiffTime
     , umodes     :: [ByteString]
     , wolframAPI :: Maybe WolframAPIKey
+    , silent     :: Bool
     }
     deriving (Show, Eq, Generic)
 
@@ -60,6 +61,7 @@ defaultConfig = BotConfig
     , rateTime   = 300
     , umodes     = ["+B"]
     , wolframAPI = Nothing
+    , silent     = True
     }
 
 readConfig :: FilePath -> IO (Maybe BotConfig)

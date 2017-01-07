@@ -69,6 +69,10 @@ parseIRC = P.map decode >-> filterJust
 filterJust :: Monad m => Pipe (Maybe a) a m ()
 filterJust = P.filter isJust >-> P.map fromJust
 
-inbound, outbound :: MonadIO m => Consumer' ByteString m ()
-inbound = P.map (\x -> "<-- " <> x <> "\r\n") >-> stdout
-outbound = P.map (\x -> "--> " <> x <> "\r\n") >-> stdout
+inbound, outbound :: MonadIO m => BotConfig -> Consumer ByteString m ()
+inbound BotConfig{..} 
+    | silent = P.drain
+    | otherwise = P.map (\x -> "<-- " <> x <> "\r\n") >-> stdout
+outbound BotConfig{..} 
+    | silent = P.drain
+    | otherwise = P.map (\x -> "--> " <> x <> "\r\n") >-> stdout

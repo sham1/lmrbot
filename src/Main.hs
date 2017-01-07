@@ -51,17 +51,17 @@ bootstrap :: MonadIO m
           -> Consumer ByteString m () 
           -> Effect m ()
 bootstrap conf up down = do
-    let encSend = P.map encode >-> P.tee outbound >-> down
+    let encSend = P.map encode >-> P.tee (outbound conf) >-> down
 
-    up >-> P.take 2 >-> inbound
+    up >-> P.take 2 >-> inbound conf
     register conf >-> encSend
 
     -- wait for and respond to initial ping
-    up >-> P.tee inbound >-> parseIRC >-> P.dropWhile (not . isPing) 
-       >-> P.take 1 >-> response [ pingR ] >-> P.tee outbound >-> down
+    up >-> P.tee (inbound conf) >-> parseIRC >-> P.dropWhile (not . isPing) 
+       >-> P.take 1 >-> response [ pingR ] >-> P.tee (outbound conf) >-> down
 
     -- drain until nickserv notice
-    up >-> P.tee inbound >-> parseIRC >-> P.dropWhile (not . isNSNotice) 
+    up >-> P.tee (inbound conf) >-> parseIRC >-> P.dropWhile (not . isNSNotice) 
        >-> P.take 1 >-> P.drain
 
     -- do nickserv auth and modes, then wait 1s before joining
@@ -88,8 +88,8 @@ main = do
 
     -- bot loop
     runEffect $ 
-        up >-> P.tee inbound >-> parseIRC >-> response comms'
-           >-> P.tee outbound >-> down
+        up >-> P.tee (inbound conf) >-> parseIRC >-> response comms'
+           >-> P.tee (outbound conf) >-> down
 
     where comms c ulim man = 
               [ return pingR
