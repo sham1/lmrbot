@@ -9,8 +9,7 @@ module Commands.Reddit
     wcgw,
     meme,
     randomReddit,
-    wallpaper,
-    wallpaperWide
+    wallpaper
 )
 where
 
