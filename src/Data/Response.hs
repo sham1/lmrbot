@@ -160,7 +160,7 @@ rateLimit' c mvar res = return . Response $ \m -> do
                 ts  <- fromMaybe 0 <$> liftIO (tryTakeMVar mvar)
                 tc  <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
                 if tc - ts <= rateTime c && not (fromAdmin c m)
-                    then return Nothing
+                    then liftIO (putMVar mvar ts) >> return Nothing
                     else liftIO (putMVar mvar tc) >> return r
 
 -- | Rate limit a 'Response' according to value in config, but for each user
@@ -190,5 +190,5 @@ userLimit' c mvar res = return . Response $ \m -> do
                     ts    = fromMaybe 0 $ M.lookup u umap
                     umap' = M.insert u tc umap
                 if tc - ts <= rateTime c && not (fromAdmin c m)
-                    then return Nothing
+                    then liftIO (putMVar mvar umap) >> return Nothing
                     else liftIO (putMVar mvar umap') >> return r
