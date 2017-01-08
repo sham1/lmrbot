@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedLists #-}
 module Commands.Reddit
 (
     startrek,
@@ -17,6 +18,7 @@ import Servant.API
 import Servant.Client
 import Control.Monad.IO.Class
 import Control.Monad.Except
+import Control.Monad.Random
 import Data.ByteString.Char8 (ByteString, pack)
 import Data.Proxy
 import Data.Maybe
@@ -52,7 +54,8 @@ instance FromJSON Reddit where
         Object o4 <- o3 .: "data"
         u <- o4 .: "url"
         return $ Reddit u
-    parseJSON _ = error "Error parsing reddit response"
+    parseJSON o@(Object _) = parseJSON (Array (V.fromList [o]))
+    parseJSON _ = fail "Error parsing Reddit data!"
 
 randomReddit :: MonadIO m => Manager -> SubReddit -> ByteString -> Response m
 randomReddit man sub cmd = simpleCmd' cmd $ \_ chan -> do
@@ -71,5 +74,10 @@ wcgw m = randomReddit m (SubReddit "whatcouldgowrong") ":wcgw"
 meme :: MonadIO m => Manager -> Response m
 meme m = randomReddit m (SubReddit "linuxmemes") ":meme"
 
-wallpaper :: MonadIO m => Manager -> Response m
-wallpaper m = randomReddit m (SubReddit "wallpapers") ":wallpaper"
+wallpaper :: (MonadRandom m, MonadIO m) => Manager -> m (Response m)
+wallpaper m = do
+    let subs = [ SubReddit "wallpapers", SubReddit "unixwallpapers"
+               , SubReddit "widescreenwallpaper" ]
+        bound = pred $ V.length subs
+    i <- getRandomR (0, bound)
+    return $ randomReddit m (subs V.! i) ":wallpaper"
