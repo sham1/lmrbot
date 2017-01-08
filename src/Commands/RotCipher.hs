@@ -59,7 +59,7 @@ parser = string ":rot" *> space *> choice [ enc, dec ]
 
 rotCmd :: Monad m => Response m
 rotCmd = fromMsgParser parser $ \_ chan method -> case method of
-    Encrypt{..} -> let x = pack $ rot key plaintext
+    Encrypt{..} -> let x = pack $ rot (key `rem` 26) plaintext
                     in return $ privmsg (fromMaybe "" chan) x
     Decrypt{..} -> let x = pack $ derot ciphertext
                     in return $ privmsg (fromMaybe "" chan) x
