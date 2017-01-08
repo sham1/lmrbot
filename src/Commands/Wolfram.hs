@@ -36,7 +36,7 @@ newtype Query = Query String
 parser :: Parser Query
 parser = Query . unpack <$>
     (char ':' *> choice [ string "hal", string "wa" ] 
-              *> skipSpace *> takeByteString)
+              *> space *> skipSpace *> takeByteString)
 
 type WolframShort = "v1" 
                  :> "result" 
