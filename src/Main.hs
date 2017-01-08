@@ -99,6 +99,7 @@ main = do
               , return $ leaveCmd c
               , return $ modeCmd c
               , userLimit' c ulim rms
+              , userLimit' c ulim rmsfact
               , userLimit' c ulim linus
               , userLimit' c ulim theo 
               , userLimit' c ulim catv

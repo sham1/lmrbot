@@ -13,6 +13,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  README.rst
                      quotes/rms
+                     quotes/rmsfact
                      quotes/linus
                      quotes/theo
 

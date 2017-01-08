@@ -5,6 +5,7 @@ module Commands.Quote
 (
     quote,
     rms,
+    rmsfact,
     linus,
     theo,
     catv
@@ -42,6 +43,10 @@ quote cmd qs = fromMsgParser (qcmd cmd) $ \_ chan k -> do
 rms :: MonadRandom m => Response m
 rms = quote ":rms" rmsQs
     where rmsQs = fromEmbed ($(embedFile "quotes/rms"))
+
+rmsfact :: MonadRandom m => Response m
+rmsfact = quote ":rmsfact" rmsQs
+    where rmsQs = fromEmbed ($(embedFile "quotes/rmsfact"))
 
 linus :: MonadRandom m => Response m
 linus = quote ":linus" linusQs
