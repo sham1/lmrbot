@@ -62,10 +62,11 @@ instance FromJSON Reddit where
     parseJSON _ = fail "Error parsing Reddit data!"
 
 randomReddit :: MonadIO m 
-             => Bool -> Manager -> SubReddit -> ByteString -> Response m
-randomReddit showTitle man sub cmd = simpleCmd' cmd $ \_ chan -> do
+             => Bool -> Manager -> m SubReddit -> ByteString -> m (Response m)
+randomReddit showTitle man sub cmd = return $ simpleCmd' cmd $ \_ chan -> do
     let uagent = Just "linux:tsahyt/lmrbot:v0.1.0 (by /u/tsahyt)"
-    res <- liftIO $ runExceptT (query sub uagent man baseUrl)
+    sub' <- sub
+    res  <- liftIO $ runExceptT (query sub' uagent man baseUrl)
     case res of
         Left _  -> return Nothing
         Right Reddit{..} -> 
@@ -74,19 +75,19 @@ randomReddit showTitle man sub cmd = simpleCmd' cmd $ \_ chan -> do
                    <> if showTitle then " : " <> pack title else mempty
              in return . Just $ privmsg (fromMaybe "" chan) ret
 
-startrek :: MonadIO m => Manager -> Response m
-startrek m = randomReddit True m (SubReddit "startrekgifs") ":startrek"
+startrek :: MonadIO m => Manager -> m (Response m)
+startrek m = randomReddit True m (pure $ SubReddit "startrekgifs") ":startrek"
 
-wcgw :: MonadIO m => Manager -> Response m
-wcgw m = randomReddit True m (SubReddit "whatcouldgowrong") ":wcgw"
+wcgw :: MonadIO m => Manager -> m (Response m)
+wcgw m = randomReddit True m (pure $ SubReddit "whatcouldgowrong") ":wcgw"
 
-meme :: MonadIO m => Manager -> Response m
-meme m = randomReddit True m (SubReddit "linuxmemes") ":meme"
+meme :: MonadIO m => Manager -> m (Response m)
+meme m = randomReddit True m (pure $ SubReddit "linuxmemes") ":meme"
 
 wallpaper :: (MonadRandom m, MonadIO m) => Manager -> m (Response m)
 wallpaper m = do
     let subs = [ SubReddit "wallpapers", SubReddit "unixwallpapers"
                , SubReddit "widescreenwallpaper" ]
         bound = pred $ V.length subs
-    i <- getRandomR (0, bound)
-    return $ randomReddit False m (subs V.! i) ":wallpaper"
+    randomReddit False m ((subs V.!) <$> getRandomR (0, bound)) 
+             ":wallpaper"
