@@ -33,8 +33,9 @@ rotOne k x
           go off = chr . (+ off) . (`rem` 26) . subtract off . (+ k) . ord
 
 dictMatch :: String -> Double
-dictMatch = percentage . map (flip S.member dictionary . pack) 
-          . filter (all isAlpha) . words
+dictMatch = percentage 
+          . map (flip S.member dictionary . pack . map toLower . filter isAlpha)
+          . words
     where percentage xs = let n = fromIntegral . length $ xs 
                               k = fromIntegral . length . filter id $ xs
                            in k / n
