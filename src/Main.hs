@@ -99,6 +99,7 @@ main = do
               , return $ joinCmd c
               , return $ leaveCmd c
               , return $ modeCmd c
+              , userLimit' c ulim rotCmd
               , userLimit' c ulim rmsfact
               , userLimit' c ulim rms
               , userLimit' c ulim linus
@@ -110,5 +111,4 @@ main = do
               , userLimit' c ulim =<< wallpaper man
               , rateLimit c interject
               , return $ wolfram man (wolframAPI c)
-              , return rotCmd
               ]

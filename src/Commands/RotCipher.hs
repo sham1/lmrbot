@@ -7,13 +7,12 @@ module Commands.RotCipher
 )
 where
 
-import Control.Arrow
 import Data.Char
 import Data.FileEmbed
 import Data.Maybe
 import Data.Response
-import Data.Ord (comparing, Down (..))
-import Data.List (sortBy, sort, group, maximumBy)
+import Data.Ord (comparing)
+import Data.List (maximumBy)
 import Data.ByteString.Char8 (ByteString, unpack, pack)
 import Data.Attoparsec.ByteString.Char8
 import Data.HashSet (HashSet)
@@ -44,7 +43,7 @@ dictionary :: HashSet ByteString
 dictionary = S.fromList . B.words $ ($(embedFile "etc/wordlist.txt"))
 
 derot :: String -> String
-derot s = let choices = map (`rot` s) [1..25] in best choices
+derot s = let choices = map (`rot` s) [0..25] in best choices
     where best [] = "I cannot decipher an empty string!"
           best xs = maximumBy (comparing dictMatch) xs
 

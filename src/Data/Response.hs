@@ -143,6 +143,11 @@ msgUser' :: Maybe Prefix -> Maybe UserName
 msgUser' (Just (NickName u _ _)) = Just u
 msgUser' _ = Nothing
 
+msgChannel :: Message -> Maybe Channel
+msgChannel Message{..} = case msg_params of
+    [c,_] -> Just c
+    _     -> Nothing
+
 -- | Rate limit a 'Response' according to values in the 'BotConfig'
 rateLimit :: MonadIO m => BotConfig -> Response m -> m (Response m)
 rateLimit c res = do
@@ -153,13 +158,15 @@ rateLimit c res = do
 rateLimit' :: MonadIO m 
            => BotConfig -> MVar POSIXTime -> Response m -> m (Response m)
 rateLimit' c mvar res = return . Response $ \m -> do
+        let chan = fromMaybe "--no-chan--" (msgChannel m)
         res' <- respond res m
         case res' of
             Nothing -> return Nothing
             r -> do
                 ts  <- fromMaybe 0 <$> liftIO (tryTakeMVar mvar)
                 tc  <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
-                if tc - ts <= rateTime c && not (fromAdmin c m)
+                if tc - ts <= rateTime c && not (fromAdmin c m) 
+                   && chan `elem` rateChans c
                     then liftIO (putMVar mvar ts) >> return Nothing
                     else liftIO (putMVar mvar tc) >> return r
 
@@ -180,6 +187,7 @@ emptyCooldown = liftIO (newMVar M.empty)
 userLimit' :: MonadIO m 
            => BotConfig -> MVar UserCooldown -> Response m -> m (Response m)
 userLimit' c mvar res = return . Response $ \m -> do
+        let chan = fromMaybe "--no-chan--" (msgChannel m)
         res' <- respond res m
         case res' of
             Nothing -> return Nothing
@@ -190,5 +198,6 @@ userLimit' c mvar res = return . Response $ \m -> do
                     ts    = fromMaybe 0 $ M.lookup u umap
                     umap' = M.insert u tc umap
                 if tc - ts <= rateTime c && not (fromAdmin c m)
+                   && chan `elem` rateChans c
                     then liftIO (putMVar mvar umap) >> return Nothing
                     else liftIO (putMVar mvar umap') >> return r

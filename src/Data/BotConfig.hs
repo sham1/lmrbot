@@ -33,6 +33,7 @@ data BotConfig = BotConfig
     , botpwd     :: Maybe ByteString
     , adminUsers :: [UserName]
     , rateTime   :: NominalDiffTime
+    , rateChans  :: [Channel]
     , umodes     :: [ByteString]
     , wolframAPI :: Maybe WolframAPIKey
     , silent     :: Bool
@@ -59,6 +60,7 @@ defaultConfig = BotConfig
     , botpwd     = Nothing
     , adminUsers = []
     , rateTime   = 300
+    , rateChans  = []
     , umodes     = ["+B"]
     , wolframAPI = Nothing
     , silent     = True
