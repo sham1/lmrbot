@@ -26,7 +26,7 @@ import Data.Monoid
 import Data.Proxy
 import GHC.Generics
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 (unpack, pack)
+import Data.ByteString.Char8 (ByteString, unpack, pack)
 import Network.HTTP.Client (Manager)
 import Data.Aeson
 
@@ -61,10 +61,19 @@ data Pod = Pod
     { title     :: String
     , subpods   :: Maybe [Pod]
     , plaintext :: Maybe String
+    , primary   :: Maybe Bool
     }
     deriving (Eq, Show, Ord, Generic)
 
 instance FromJSON Pod
+
+getPrimaryPods :: WAResult -> [Pod]
+getPrimaryPods (WAResult q) = filter ((== Just True) . primary) (pods q)
+
+constructPodAnswer :: Pod -> ByteString
+constructPodAnswer p = case subpods p of
+    Nothing -> maybe "" pack (plaintext p)
+    Just xs -> mconcat . map constructPodAnswer $ xs
 
 type WolframFull = "v2"
                 :> "query"
@@ -98,12 +107,12 @@ wolfram man appid = fromMsgParser parser $ \p chan q -> do
             res' <- liftIO $ runExceptT (longAnswer appid (Just q) 
                                                           (Just "json") 
                                                           (Just "plaintext") 
-                                                          (Just "Result") 
+                                                          Nothing
                                                           man baseUrl)
             case res' of
-                Right (WAResult (QueryResult _ 
-                    [Pod _ (Just [Pod _ _ (Just r)]) _])) -> 
-                    return $ privmsg (fromMaybe "" chan) (pack r)
+                Right r -> let ret = mconcat 
+                                   . map constructPodAnswer . getPrimaryPods $ r
+                            in return $ privmsg (fromMaybe "" chan) ret
                 _ -> return $ privmsg (fromMaybe "" chan) $
                     "I'm sorry " <> u <> ", I'm afraid I can't do that."
         Right r -> return $ privmsg (fromMaybe "" chan) (pack r)
