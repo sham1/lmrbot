@@ -21,6 +21,7 @@ import Commands.Quote
 import Commands.Interject
 import Commands.Wolfram
 import Commands.Reddit
+import Commands.RotCipher
 
 import Options.Applicative
 
@@ -109,4 +110,5 @@ main = do
               , userLimit' c ulim =<< wallpaper man
               , rateLimit c interject
               , return $ wolfram man (wolframAPI c)
+              , return rotCmd
               ]
