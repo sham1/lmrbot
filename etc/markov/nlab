@@ -23,7 +23,7 @@ has a list of objects as its domain, and a single object as its codomain; think
 vector spaces and multilinear maps. Monads are among the most pervasive
 structures in category theory and its applications: for example, they are
 central to the category-theoretic account of universal algebra, as well as
-underlying the theory of simplicial objects and thus, via the Dold–Kan
+underlying the theory of simplicial objects and thus, via the Dold-Kan
 correspondence, much of homological algebra.
 
 A bicategory is a particular algebraic notion of weak 2-category. The idea is

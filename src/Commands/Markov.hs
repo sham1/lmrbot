@@ -64,6 +64,11 @@ render = dropWhile isSpace . foldr go []
     where go x xs | x `elem` map pure seperators = x ++ xs
                   | otherwise = " " ++ x ++ xs
 
+takeUntilN :: (a -> Bool) -> Int -> [a] -> [a]
+takeUntilN _ 0 _ = []
+takeUntilN p n x = let (l,h:r) = break p x
+                    in l ++ h : takeWhileN p (pred n) r
+
 buildChain :: forall a. (Ord a) => Int -> [a] -> MarkovMap a
 buildChain n tokens = 
     let ngrams = map (take (n + 1)) . take (length tokens) 
@@ -84,7 +89,8 @@ markov :: MonadRandom m
        => ByteString -> MarkovMap String -> [[String]] -> Response m
 markov cmd chain starts = simpleCmd cmd $ \_ chan -> do
     s <- (starts !!) <$> getRandomR (0, pred $ length starts)
-    ret <- render <$> runChain 32 s chain
+    n <- getRandomR (1,3)
+    ret <- render . takeUntilN (== ".") n <$> runChain 80 s chain
     return $ privmsg (fromMaybe "" chan) (pack ret)
 
 nlab :: MonadRandom m => Response m
@@ -93,9 +99,12 @@ nlab = markov ":nlab" chain $ map tokenize starts
                       ($(embedFile "etc/markov/nlab"))
           starts = [ "An orientifold"
                    , "A monad"
+                   , "Monads are"
                    , "An explicit"
                    , "Ordinary categories"
                    , "A bicategory"
                    , "The morphisms"
                    , "More generally" 
-                   , "The term" ]
+                   , "The term" 
+                   , "Generalizing the" 
+                   , "Classical monoids" ]
