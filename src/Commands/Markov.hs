@@ -93,7 +93,7 @@ markov :: MonadRandom m
        => ByteString -> MarkovMap String -> [[String]] -> Response m
 markov cmd chain starts = simpleCmd cmd $ \_ chan -> do
     s <- (starts !!) <$> getRandomR (0, pred $ length starts)
-    n <- getRandomR (1,3)
+    n <- getRandomR (1,2)
     ret <- render . takeUntilN (== ".") n <$> runChain 80 s chain
     return $ privmsg (fromMaybe "" chan) (pack ret)
 
