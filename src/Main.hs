@@ -22,6 +22,7 @@ import Commands.Interject
 import Commands.Wolfram
 import Commands.Reddit
 import Commands.RotCipher
+import Commands.Markov
 
 import Options.Applicative
 
@@ -109,6 +110,7 @@ main = do
               , userLimit' c ulim =<< wcgw man
               , userLimit' c ulim =<< meme man
               , userLimit' c ulim =<< wallpaper man
+              , userLimit' c ulim nlab
               , rateLimit c interject
               , return $ wolfram man (wolframAPI c)
               ]
