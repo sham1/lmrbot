@@ -69,8 +69,9 @@ render = dropWhile isSpace . foldr go []
 
 takeUntilN :: (a -> Bool) -> Int -> [a] -> [a]
 takeUntilN _ 0 _ = []
-takeUntilN p n x = let (l,h:r) = break p x
-                    in l ++ h : takeUntilN p (pred n) r
+takeUntilN p n x = case break p x of
+    (l,h:r) -> l ++ h : takeUntilN p (pred n) r
+    (l,_)   -> l
 
 buildChain :: forall a. (Ord a) => Int -> [a] -> MarkovMap a
 buildChain n tokens = 
