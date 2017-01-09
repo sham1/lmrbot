@@ -81,13 +81,16 @@ startrek m = randomReddit True m (pure $ SubReddit "startrekgifs") ":startrek"
 wcgw :: MonadIO m => Manager -> m (Response m)
 wcgw m = randomReddit True m (pure $ SubReddit "whatcouldgowrong") ":wcgw"
 
-meme :: MonadIO m => Manager -> m (Response m)
-meme m = randomReddit True m (pure $ SubReddit "linuxmemes") ":meme"
+meme :: (MonadRandom m, MonadIO m) => Manager -> m (Response m)
+meme m =
+    let subs = [ SubReddit "linuxmemes", SubReddit "wholesomememes" ]
+        bound = pred $ V.length subs
+     in randomReddit True m ((subs V.!) <$> getRandomR (0, bound)) ":meme"
 
 wallpaper :: (MonadRandom m, MonadIO m) => Manager -> m (Response m)
-wallpaper m = do
+wallpaper m =
     let subs = [ SubReddit "wallpapers", SubReddit "unixwallpapers"
                , SubReddit "widescreenwallpaper" ]
         bound = pred $ V.length subs
-    randomReddit False m ((subs V.!) <$> getRandomR (0, bound)) 
-             ":wallpaper"
+     in randomReddit False m ((subs V.!) <$> getRandomR (0, bound)) 
+                     ":wallpaper"
