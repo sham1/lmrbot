@@ -25,6 +25,7 @@ import Data.Proxy
 import Data.Maybe
 import Data.Monoid
 import Data.Response
+import Data.List (isPrefixOf)
 import Network.IRC
 import Network.HTTP.Client (Manager)
 import Data.Aeson
@@ -63,17 +64,22 @@ instance FromJSON Reddit where
 
 randomReddit :: MonadIO m 
              => Bool -> Manager -> m SubReddit -> ByteString -> m (Response m)
-randomReddit showTitle man sub cmd = return $ simpleCmd' cmd $ \_ chan -> do
-    let uagent = Just "linux:tsahyt/lmrbot:v0.1.0 (by /u/tsahyt)"
-    sub' <- sub
-    res  <- liftIO $ runExceptT (query sub' uagent man baseUrl)
-    case res of
-        Left _  -> return Nothing
-        Right Reddit{..} -> 
-            let ret = if nsfw then "(NSFW!) " else mempty 
-                   <> pack url
-                   <> if showTitle then " : " <> pack title else mempty
-             in return . Just $ privmsg (fromMaybe "" chan) ret
+randomReddit showTitle man sub cmd = return $ simpleCmd' cmd go
+    where go _ chan = do
+              let uagent = Just "linux:tsahyt/lmrbot:v0.1.0 (by /u/tsahyt)"
+              sub' <- sub
+              res  <- liftIO $ runExceptT (query sub' uagent man baseUrl)
+              case res of
+                  Left _  -> return Nothing
+                  Right Reddit{..} -> 
+                      let ret = if nsfw then "(NSFW!) " else mempty 
+                             <> pack url
+                             <> if showTitle then " : " <> pack title 
+                                             else mempty
+                       in if forbidden url then go Nothing chan else 
+                              return . Just $ privmsg (fromMaybe "" chan) ret
+
+          forbidden url = "https://i.reddituploads.com" `isPrefixOf` url
 
 startrek :: MonadIO m => Manager -> m (Response m)
 startrek m = randomReddit True m (pure $ SubReddit "startrekgifs") ":startrek"
