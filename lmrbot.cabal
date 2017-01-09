@@ -48,7 +48,6 @@ executable lmrbot
                        mtl,
                        network,
                        optparse-applicative,
-                       singletons,
                        pipes,
                        pipes-bytestring,
                        servant,
