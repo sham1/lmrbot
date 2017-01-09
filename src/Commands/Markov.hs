@@ -39,10 +39,15 @@ randomStart (MarkovMap m) =
 
 tokenize :: String -> [String]
 tokenize = concatMap (foldr go []) . words
-    where go x [] | isPunctuation x = [[], [x]]
+    where go x [] | x `elem` ";," = [[], [x]]
                   | otherwise = [[x]]
-          go x xs | isPunctuation x = [] : [x] : xs
+          go x xs | x `elem` ";," = [] : [x] : xs
                   | otherwise = let (y:ys) = xs in (x:y) : ys
+
+render :: [String] -> String
+render = dropWhile isSpace . foldr go []
+    where go x xs | x `elem` [".",","] = x ++ xs
+                  | otherwise = " " ++ x ++ xs
 
 buildChain :: forall a. (Ord a) => Int -> [a] -> MarkovMap a
 buildChain n tokens = 
