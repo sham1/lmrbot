@@ -6,38 +6,43 @@ import Control.Arrow
 import Control.Monad.Random.Class
 import Data.Distribution hiding (toList, on)
 import Data.Maybe
-import Data.Proxy
 import Data.Ord
-import Data.Foldable
+import Data.Char
 import Data.Function
 import Data.List (tails, groupBy, sortBy, sort, group)
 import Data.Map (Map)
 import qualified Data.Map as M
 
-import GHC.TypeLits
-import qualified GHC.Exts as E
-
-newtype History a = History [a]
+newtype History a = History { unHist :: [a] }
     deriving (Eq, Show, Ord)
 
 newtype MarkovMap a = MarkovMap { unMM :: Map (History a) (Distribution a) }
     deriving (Eq, Show, Ord)
 
-runChain :: forall a m. (Ord a, MonadRandom m) => Int -> MarkovMap a -> m [a]
-runChain l (MarkovMap m) = do
-    xs <- (M.keys m !!) <$> getRandomR (0, pred $ M.size m)
-    fst <$> go ([], xs)
-
+runChain :: forall a m. (Ord a, Show a, MonadRandom m) 
+         => Int -> [a] -> MarkovMap a -> m [a]
+runChain l start (MarkovMap m) = fst <$> go ([], History start)
     where go :: ([a], History a) -> m ([a], History a)
           go (xs, hist)
               | length xs == l = return (xs, hist)
               | otherwise = do
-                  let cs = fromMaybe (error "Key not in chain") 
+                  let cs = fromMaybe (error $ "Key not in chain " ++ show hist)
                          $ M.lookup hist m
                   r <- getSample . fromDistribution $ cs
 
                   let History (h:hs) = hist
                   go (xs ++ [h], History $ hs ++ [r])
+
+randomStart :: MonadRandom m => MarkovMap a -> m [a]
+randomStart (MarkovMap m) = 
+    unHist . (M.keys m !!) <$> getRandomR (0, pred $ M.size m)
+
+tokenize :: String -> [String]
+tokenize = concatMap (foldr go []) . words
+    where go x [] | isPunctuation x = [[], [x]]
+                  | otherwise = [[x]]
+          go x xs | isPunctuation x = [] : [x] : xs
+                  | otherwise = let (y:ys) = xs in (x:y) : ys
 
 buildChain :: forall a. (Ord a) => Int -> [a] -> MarkovMap a
 buildChain n tokens = 
