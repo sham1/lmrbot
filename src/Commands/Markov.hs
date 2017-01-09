@@ -33,7 +33,10 @@ newtype MarkovMap a = MarkovMap { unMM :: Map (History a) (Distribution a) }
 
 runChain :: forall a m. (Ord a, Show a, MonadRandom m) 
          => Int -> [a] -> MarkovMap a -> m [a]
-runChain l start (MarkovMap m) = fst <$> go ([], History start)
+runChain l start (MarkovMap m) = 
+    if M.member (History start) m 
+    then fst <$> go ([], History start) 
+    else return []
     where go :: ([a], History a) -> m ([a], History a)
           go (xs, hist)
               | length xs == l = return (xs, hist)
@@ -97,14 +100,8 @@ nlab :: MonadRandom m => Response m
 nlab = markov ":nlab" chain $ map tokenize starts
     where chain = buildChain 2 . tokenize . unpack $ 
                       ($(embedFile "etc/markov/nlab"))
-          starts = [ "An orientifold"
-                   , "A monad"
-                   , "Monads are"
-                   , "An explicit"
-                   , "Ordinary categories"
-                   , "A bicategory"
-                   , "The morphisms"
-                   , "More generally" 
-                   , "The term" 
-                   , "Generalizing the" 
-                   , "Classical monoids" ]
+          starts = [ "An orientifold", "A monad", "Monads are", "An explicit"
+                   , "Ordinary categories", "A bicategory", "The morphisms"
+                   , "More generally", "The term", "Generalizing the" 
+                   , "Classical monoids", "A bifunctor", "Enriched functors"
+                   , "The notion", "A monadic", "The isofibrations" ]

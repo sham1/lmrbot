@@ -54,3 +54,46 @@ term groupoid is also used, but here that word means something else.
 Generalizing the classical notion of monoid, one can define a monoid (or monoid
 object) in any monoidal category. Classical monoids are of course just monoids
 in Set with the cartesian product.
+
+A bifunctor, short for binary functor, or functor of two variables is simply a
+functor whose domain is the product of two categories. A functor is what goes
+between categories.  A functor from C to D is an image of C in D (but the naive
+image need not be a subcategory of D).  A functor between (small) categories is
+a morphism of the underlying quivers that respects the composition of edges.
+This last property is the decisive one of a functor. It is called the
+functoriality condition. It is a direct generalization of the notion of
+homomorphism of monoids, groups, algebras, etc to the case that there are more
+objects. The notion of functor is a horizontal categorification of that of
+homomorphism.
+
+Enriched functors are used in place of functors in enriched category theory:
+like functors they send objects to objects, but instead of mapping hom-sets to
+hom-sets they assign morphisms in the enriching category between hom-objects,
+while being compatible with composition and units in the obvious way.
+A contravariant functor is like a functor but it reverses the directions of the
+morphisms. Between groupoids, contravariant functors are essentially the same
+as functors.
+
+Categories, covariant functors, and natural transformations form a 2-category
+Cat. To include the contravariant functors as well, we can equip CatCat with a
+duality involution, or we can generalize to a 2-category with contravariance, or
+some more general structure that also includes extranatural transformations or
+dinatural transformations. There could also be higher-categorical versions, such
+as a 3-category with contravariance.
+
+The notion of a comonadic functor is the dual of that of a monadic functor.  A
+functor is monadic if it is equivalent to the forgetful functor from a category
+of algebras over a monad. In this case it is part of a monadic adjunction.
+
+A monadic functor is strictly monadic if and only if it is also an amnestic
+isofibration: clearly, a strictly monadic functor is an amnestic isofibration;
+and if a monadic functor U is amnestic, then the comparison functor K is also
+amnestic, and if U is a monadic isofibration, so is K; therefore in this case
+K must be an isomorphism of categories.
+
+The isofibrations are the fibrations in the canonical model structure on Cat.
+More generally, the fibrations in canonical model structures on various types of
+higher categories are usually some generalization of isofibrations. For example,
+the fibrations in the Lack model structure on 2-Cat have equivalence lifting
+and local isomorphism lifting, and the fibrations in the Joyal model structure
+for quasicategories have equivalence lifting at all levels.
