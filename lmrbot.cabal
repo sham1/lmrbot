@@ -17,6 +17,8 @@ extra-source-files:  README.rst
                      quotes/linus
                      quotes/theo
                      etc/wordlist.txt
+                     etc/markov/nlab
+                     etc/markov/trump
 
 executable lmrbot
   hs-source-dirs:      src

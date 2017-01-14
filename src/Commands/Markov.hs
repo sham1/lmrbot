@@ -6,7 +6,8 @@ module Commands.Markov
     MarkovMap (..),
     randomStart,
     markov,
-    nlab
+    nlab,
+    trump
 )
 where
 
@@ -106,3 +107,14 @@ nlab = markov ":nlab" chain $ map tokenize starts
                    , "More generally", "The term", "Generalizing the" 
                    , "Classical monoids", "A bifunctor", "Enriched functors"
                    , "The notion", "A monadic", "The isofibrations" ]
+
+trump :: MonadRandom m => Response m
+trump = markov ":trump" chain $ map tokenize starts
+    where chain = buildChain 2 . tokenize . unpack $
+                      ($(embedFile "etc/markov/trump"))
+          starts = [ "Hillary just", "Mexico will"
+                   , "Crooked Hillary", "Get smart"
+                   , "In Britain", "How can", "I am"
+                   , "Hillary can't", "Having an"
+                   , "The man", "Thank you", "ISIS LAUGHS"
+                   , "Bernie Sanders" ]
