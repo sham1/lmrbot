@@ -118,3 +118,18 @@ trump = markov ":trump" chain $ map tokenize starts
                    , "Hillary can't", "Having an"
                    , "The man", "Thank you", "ISIS LAUGHS"
                    , "Bernie Sanders" ]
+
+marxov :: MonadRandom m => Response m
+marxov = markov ":marxov" chain $ map tokenize starts
+    where chain = buildChain 2 . tokenize . unpack $
+                      ($(embedFile "etc/markov/marxov"))
+          starts = [ "We see", "Of all", "The dangerous"
+                   , "All previous", "This organisation"
+                   , "Just as", "Every form", "The essential"
+                   , "The Communists", "All property"
+                   , "The theory", "We Communists"
+                   , "But does", "To be", "Capital is"
+                   , "In bourgeois", "And the", "Communism deprives"
+                   , "All objections", "But you", "Bourgeois marriage"
+                   , "The working" , "The Communist"
+                   , "The feudal", "Working men" ]
