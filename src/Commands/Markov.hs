@@ -7,7 +7,8 @@ module Commands.Markov
     randomStart,
     markov,
     nlab,
-    trump
+    trump,
+    marxov
 )
 where
 

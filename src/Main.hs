@@ -112,6 +112,7 @@ main = do
               , userLimit' c ulim =<< wallpaper man
               , userLimit' c ulim nlab
               , userLimit' c ulim trump
+              , userLimit' c ulim marxov
               , rateLimit c interject
               , return $ wolfram man (wolframAPI c)
               ]
