@@ -113,6 +113,7 @@ main = do
               , userLimit' c ulim nlab
               , userLimit' c ulim trump
               , userLimit' c ulim marxov
+              , userLimit' c ulim trek
               , rateLimit c interject
               , return $ wolfram man (wolframAPI c)
               ]
