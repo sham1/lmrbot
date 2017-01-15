@@ -8,7 +8,8 @@ module Commands.Markov
     markov,
     nlab,
     trump,
-    marxov
+    marxov,
+    trek
 )
 where
 
@@ -115,7 +116,7 @@ trump = markov ":trump" chain $ map tokenize starts
                       ($(embedFile "etc/markov/trump"))
           starts = [ "Hillary just", "Mexico will"
                    , "Crooked Hillary", "Get smart"
-                   , "In Britain", "How can", "I am"
+                   , "How can", "I am"
                    , "Hillary can't", "Having an"
                    , "The man", "Thank you", "ISIS LAUGHS"
                    , "Bernie Sanders" ]
@@ -134,3 +135,14 @@ marxov = markov ":marxov" chain $ map tokenize starts
                    , "All objections", "But you", "Bourgeois marriage"
                    , "The working" , "The Communist"
                    , "The feudal", "Working men" ]
+
+trek :: MonadRandom m => Response m
+trek = markov ":trek" chain $ map tokenize starts
+    where chain = buildChain 2 . tokenize . unpack $
+                      ($(embedFile "etc/markov/trek"))
+          starts = [ "Captain,", "Our tachyon", "Our scientists"
+                   , "I've modified", "A cosmic", "We've tried"
+                   , "That's Concrane", "These look", "It is"
+                   , "We think", "It's a", "During the", "They employ"
+                   , "I suppose", "If this", "Somehow,", "Plasma deviation"
+                   , "A fluctuation" ]

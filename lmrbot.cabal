@@ -19,6 +19,8 @@ extra-source-files:  README.rst
                      etc/wordlist.txt
                      etc/markov/nlab
                      etc/markov/trump
+                     etc/markov/marxov
+                     etc/markov/trek
 
 executable lmrbot
   hs-source-dirs:      src
