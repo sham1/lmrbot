@@ -7,6 +7,7 @@ module Commands.Admin
     modeCmd,
     inviteR,
     isInvite,
+    say
 )
 where
 
@@ -14,6 +15,7 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.Maybe
 import Data.BotConfig
+import Data.ByteString.Char8 (ByteString, cons)
 import Data.Attoparsec.ByteString.Char8
 import Data.Maybe
 import Network.IRC
@@ -48,3 +50,16 @@ inviteR r = Response $ \m@Message{..} -> runMaybeT $ do
 
 isInvite :: Message -> Bool
 isInvite Message{..} = msg_command == "INVITE"
+
+data SayCmd = SayCmd Channel ByteString
+    deriving (Eq, Show, Ord, Read)
+
+say :: Monad m => BotConfig -> Response m
+say r = fromMsgParser' parser $ \p _ (SayCmd chan text) ->
+    runMaybeT $ do
+        guard (fromAdmin' r p)
+        return $ privmsg chan text
+    where parser = SayCmd <$> (string ":say" *> space *> channel)
+                          <*> (space *> takeByteString)
+          channel = cons <$> char '#' <*> takeWhile1 chanChars
+          chanChars x = isAlpha_iso8859_15 x || isDigit x

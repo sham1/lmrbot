@@ -100,6 +100,7 @@ main = do
               , return $ joinCmd c
               , return $ leaveCmd c
               , return $ modeCmd c
+              , return $ say c
               , userLimit' c ulim rotCmd
               , userLimit' c ulim rmsfact
               , userLimit' c ulim rms
