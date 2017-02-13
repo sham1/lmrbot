@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards #-}
 module Main where
 
 import Control.Concurrent (threadDelay)
@@ -12,6 +14,7 @@ import Network.IRC
 import Pipes
 import Pipes.Network
 import qualified Pipes.Prelude as P
+import qualified Data.ByteString.Char8 as B
 
 import Network.HTTP.Client (newManager)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
@@ -44,8 +47,14 @@ optInfo = info (helper <*> optParser)
    <> header "lmrbot - A spambot" )
 
 response :: Monad m => [Response m] -> Pipe Message ByteString m ()
-response rsps = P.mapM go >-> filterJust >-> P.map encode
+response rsps = P.mapM go >-> filterJust >-> P.map (encode . filterLong)
     where go m = listToMaybe . catMaybes <$> mapM (`respond` m) rsps
+          filterLong t
+              | [c,m] <- msg_params t
+              , B.length m >= 448 = t { msg_params = [c, longMsg] }
+              | otherwise = t
+
+          longMsg = "Nah, too much work. You're on your own"
 
 bootstrap :: MonadIO m 
           => BotConfig 
@@ -115,6 +124,6 @@ main = do
               , userLimit' c ulim trump
               , userLimit' c ulim marxov
               , userLimit' c ulim trek
-              , rateLimit c interject
+              , userLimit' c ulim interject
               , return $ wolfram man (wolframAPI c)
               ]
