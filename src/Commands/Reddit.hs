@@ -89,7 +89,7 @@ wcgw m = randomReddit True m (pure $ SubReddit "whatcouldgowrong") ":wcgw"
 
 meme :: (MonadRandom m, MonadIO m) => Manager -> m (Response m)
 meme m =
-    let subs = [ SubReddit "linuxmemes", SubReddit "wholesomememes" ]
+    let subs = [ SubReddit "linuxmemes", SubReddit "windowsmemes" ]
         bound = pred $ V.length subs
      in randomReddit True m ((subs V.!) <$> getRandomR (0, bound)) ":meme"
 
