@@ -26,6 +26,7 @@ import Commands.Wolfram
 import Commands.Reddit
 import Commands.RotCipher
 import Commands.Markov
+import Commands.CIA
 
 import Options.Applicative
 
@@ -125,5 +126,6 @@ main = do
               , userLimit' c ulim marxov
               , userLimit' c ulim trek
               , userLimit' c ulim interject
+              , userLimit' c ulim cia
               , return $ wolfram man (wolframAPI c)
               ]
