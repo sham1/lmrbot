@@ -14,9 +14,9 @@ module Commands.Markov
 where
 
 import Control.Arrow
-import Control.Monad.Random.Class
+import Control.Monad.Random.Class hiding (fromList)
 import Data.ByteString.Char8 (ByteString, pack, unpack)
-import Data.Distribution hiding (toList, on)
+import Data.Distribution hiding (toList)
 import Data.FileEmbed
 import Data.Maybe
 import Data.Ord

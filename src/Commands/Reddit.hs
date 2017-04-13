@@ -18,7 +18,6 @@ where
 import Servant.API
 import Servant.Client
 import Control.Monad.IO.Class
-import Control.Monad.Except
 import Control.Monad.Random
 import Data.ByteString.Char8 (ByteString, pack)
 import Data.Proxy
@@ -39,7 +38,7 @@ type RedditRandom = "r"
                  :> Header "User-Agent" String
                  :> "random" :> Get '[JSON] Reddit
 
-query :: SubReddit -> Maybe String -> Manager -> BaseUrl -> ClientM Reddit
+query :: Client RedditRandom
 query = client (Proxy :: Proxy RedditRandom)
 
 baseUrl :: BaseUrl
@@ -67,8 +66,9 @@ randomReddit :: MonadIO m
 randomReddit showTitle man sub cmd = return $ simpleCmd' cmd go
     where go _ chan = do
               let uagent = Just "linux:tsahyt/lmrbot:v0.1.0 (by /u/tsahyt)"
+                  env = ClientEnv man baseUrl
               sub' <- sub
-              res  <- liftIO $ runExceptT (query sub' uagent man baseUrl)
+              res <- liftIO $ flip runClientM env $ query sub' uagent
               case res of
                   Left _  -> return Nothing
                   Right Reddit{..} -> 

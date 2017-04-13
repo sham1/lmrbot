@@ -17,7 +17,6 @@ where
 import Servant.API
 import Servant.Client
 import Control.Monad.IO.Class
-import Control.Monad.Except
 import Network.IRC
 import Data.Response
 import Data.BotConfig
@@ -99,16 +98,14 @@ baseUrl = BaseUrl Http "api.wolframalpha.com" 80 ""
 wolfram :: MonadIO m => Manager -> Maybe WolframAPIKey -> Response m
 wolfram _ Nothing = emptyResponse
 wolfram man appid = fromMsgParser parser $ \p chan q -> do
-    let u = fromMaybe "Dave" $ msgUser' p
-    res <- liftIO $
-        runExceptT (shortAnswer appid (Just q) man baseUrl)
+    let u   = fromMaybe "Dave" $ msgUser' p
+        env = ClientEnv man baseUrl
+    res <- liftIO $ flip runClientM env $ shortAnswer appid (Just q)
     case res of
         Left _ -> do
-            res' <- liftIO $ runExceptT (longAnswer appid (Just q) 
-                                                          (Just "json") 
-                                                          (Just "plaintext") 
-                                                          Nothing
-                                                          man baseUrl)
+            res' <- liftIO $ flip runClientM env $ 
+                        longAnswer appid (Just q) (Just "json") 
+                            (Just "plaintext") Nothing
             case res' of
                 Right r -> let ret = mconcat 
                                    . map constructPodAnswer . getPrimaryPods $ r
