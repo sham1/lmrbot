@@ -119,7 +119,7 @@ trump = markov ":trump" chain $ map tokenize starts
                    , "How can", "I am"
                    , "Hillary can't", "Having an"
                    , "The man", "Thank you", "ISIS LAUGHS"
-                   , "Bernie Sanders" ]
+                   , "Bernie Sanders", "Sorry losers" ]
 
 marxov :: MonadRandom m => Response m
 marxov = markov ":marxov" chain $ map tokenize starts
