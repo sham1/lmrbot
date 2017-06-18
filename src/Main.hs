@@ -117,6 +117,7 @@ main = do
               , userLimit' c ulim linus
               , userLimit' c ulim theo 
               , userLimit' c ulim catv
+              , userLimit' c ulim arch
               , userLimit' c ulim =<< startrek man
               , userLimit' c ulim =<< wcgw man
               , userLimit' c ulim =<< meme man

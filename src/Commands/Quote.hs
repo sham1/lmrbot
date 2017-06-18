@@ -8,7 +8,8 @@ module Commands.Quote
     rmsfact,
     linus,
     theo,
-    catv
+    catv,
+    arch
 )
 where
 
@@ -59,6 +60,10 @@ theo = quote ":theo" theoQs
 catv :: MonadRandom m => Response m
 catv = quote ":catv" catvQs
     where catvQs = fromEmbed ($(embedFile "quotes/catv"))
+
+arch :: MonadRandom m => Response m
+arch = quote ":arch" archQs
+    where archQs = fromEmbed ($(embedFile "quotes/arch"))
 
 fromEmbed :: ByteString -> Vector ByteString
 fromEmbed = V.fromList . B.lines
