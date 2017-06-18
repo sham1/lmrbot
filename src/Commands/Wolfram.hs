@@ -23,6 +23,7 @@ import Data.BotConfig
 import Data.Maybe
 import Data.Monoid
 import Data.Proxy
+import Data.List (intersperse)
 import GHC.Generics
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString, unpack, pack)
@@ -72,7 +73,7 @@ getPrimaryPods (WAResult q) = filter ((== Just True) . primary) (pods q)
 constructPodAnswer :: Pod -> ByteString
 constructPodAnswer p = case subpods p of
     Nothing -> maybe "" pack (plaintext p)
-    Just xs -> mconcat . map constructPodAnswer $ xs
+    Just xs -> mconcat . intersperse "; " . map constructPodAnswer $ xs
 
 type WolframFull = "v2"
                 :> "query"
