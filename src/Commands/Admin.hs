@@ -7,7 +7,8 @@ module Commands.Admin
     modeCmd,
     inviteR,
     isInvite,
-    say
+    say,
+    source
 )
 where
 
@@ -63,3 +64,7 @@ say r = fromMsgParser' parser $ \p _ (SayCmd chan text) ->
                           <*> (space *> takeByteString)
           channel = cons <$> char '#' <*> takeWhile1 chanChars
           chanChars x = isAlpha_iso8859_15 x || isDigit x
+
+source :: Monad m => Response m
+source = simpleCmd ":source" $ \_ chan ->
+    return $ privmsg (fromMaybe "" chan) "https://github.com/tsahyt/lmrbot"

@@ -111,6 +111,7 @@ main = do
               , return $ leaveCmd c
               , return $ modeCmd c
               , return $ say c
+              , return $ source
               , userLimit' c ulim rotCmd
               , userLimit' c ulim rmsfact
               , userLimit' c ulim rms
