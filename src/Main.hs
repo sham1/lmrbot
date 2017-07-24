@@ -23,6 +23,7 @@ import Commands.Admin
 import Commands.Quote
 import Commands.Interject
 import Commands.Wolfram
+import Commands.Github
 import Commands.Reddit
 import Commands.RotCipher
 import Commands.Markov
@@ -130,4 +131,5 @@ main = do
               , userLimit' c ulim interject
               , userLimit' c ulim cia
               , return $ wolfram man (wolframAPI c)
+              , return $ github man
               ]

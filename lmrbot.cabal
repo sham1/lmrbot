@@ -37,6 +37,7 @@ executable lmrbot
                        Commands.RotCipher
                        Commands.Markov
                        Commands.CIA
+                       Commands.Github
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts
   build-depends:       MonadRandom,
