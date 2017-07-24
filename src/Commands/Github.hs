@@ -11,21 +11,22 @@ module Commands.Github
 )
 where
 
-import Servant.API
-import Servant.Client
+import Control.Applicative
 import Control.Monad.IO.Class
-import Data.Proxy
-import Data.Maybe (fromMaybe)
-import Network.IRC (privmsg)
-import Data.Response
-import GHC.Generics
-import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 (pack)
 import Data.Aeson
 import Data.Aeson.Casing
-import Text.Printf
+import Data.Attoparsec.ByteString.Char8
+import Data.ByteString.Char8 (pack)
+import Data.Maybe (fromMaybe)
+import Data.Proxy
+import Data.Response
 import Data.Time
+import GHC.Generics
 import Network.HTTP.Client (Manager)
+import Network.IRC (privmsg)
+import Servant.API
+import Servant.Client
+import Text.Printf
 
 data Repo = Repo
     { repoFullName        :: String
@@ -57,8 +58,9 @@ data Query = Query String String
 parser :: Parser Query
 parser = Query
      <$> (string ":github" *> space *> ident)
-     <*> (skipSpace *> ident)
-     where ident = many1 $ satisfy (\x -> isDigit x || isAlpha_iso8859_15 x)
+     <*> (((() <$ char '/') <|> skipSpace) *> ident)
+     where ident = many1 
+                 $ satisfy (\x -> isDigit x || isAlpha_iso8859_15 x || x == '-')
 
 baseUrl :: BaseUrl
 baseUrl = BaseUrl Https "api.github.com" 443 ""
