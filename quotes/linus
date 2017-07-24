@@ -28,3 +28,4 @@ I really think the license has been one of the defining factors in the success o
 I'm distrustful of projects that do not have well-defined goals, and well-defined interfaces. They tend to bloat and do "everything" over time. This is what gives us horrors like GNU emacs and Mach: they don't try to do one thing well, they try to do _everything_ based on some loose principle ("LISP is good" or "microkernels make sense" or "GGI should do graphics")
 If you solve world hunger, and make a driver that cures people of cancer, by all means enable it by default. But afaik, the Cavium CNN55XX does neither.
 Every developer always thinks that _their_ code is so special and magical that it should be enabled by default.
+Here's a nickel, Kid. Buy a real editor.
