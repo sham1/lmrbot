@@ -70,7 +70,7 @@ repoMessage Repo{..} =
     printf fmt repoHtmlUrl (dat repoUpdatedAt) repoStargazersCount 
            repoWatchersCount repoOpenIssues repoForksCount repoLanguage
     where fmt = "%s - Last update on %s.\
-               \ Repository has %d stars, %d watchers, %d open issues,\
+               \ Repository has %d stars, %d watchers, %d open issues\
                \ and %d forks. Written in %s."
           dat = formatTime defaultTimeLocale "%b %d, %Y"
 
