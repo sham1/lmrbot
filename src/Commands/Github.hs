@@ -34,7 +34,7 @@ data Repo = Repo
     , repoStargazersCount :: Int
     , repoWatchersCount   :: Int
     , repoForksCount      :: Int
-    , repoUpdatedAt       :: UTCTime
+    , repoPushedAt        :: UTCTime
     , repoLanguage        :: String
     , repoOpenIssues      :: Int
     }
@@ -67,9 +67,9 @@ baseUrl = BaseUrl Https "api.github.com" 443 ""
 
 repoMessage :: Repo -> String
 repoMessage Repo{..} = 
-    printf fmt repoHtmlUrl (dat repoUpdatedAt) repoStargazersCount 
+    printf fmt repoHtmlUrl (dat repoPushedAt) repoStargazersCount 
            repoWatchersCount repoOpenIssues repoForksCount repoLanguage
-    where fmt = "%s - Last update on %s.\
+    where fmt = "%s - Last push on %s.\
                \ Repository has %d stars, %d watchers, %d open issues\
                \ and %d forks. Written in %s."
           dat = formatTime defaultTimeLocale "%b %d, %Y"
