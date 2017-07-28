@@ -15,7 +15,7 @@ import Control.Applicative
 import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Aeson.Casing
-import Data.Attoparsec.ByteString.Char8
+import Data.Attoparsec.ByteString.Char8 hiding (take)
 import Data.ByteString.Char8 (pack)
 import Data.Maybe (fromMaybe)
 import Data.Proxy
@@ -32,11 +32,11 @@ data Repo = Repo
     { repoFullName        :: String
     , repoHtmlUrl         :: String
     , repoStargazersCount :: Int
-    , repoWatchersCount   :: Int
     , repoForksCount      :: Int
     , repoPushedAt        :: UTCTime
     , repoLanguage        :: String
     , repoOpenIssues      :: Int
+    , repoDescription     :: Maybe String
     }
     deriving (Eq, Show, Ord, Generic)
 
@@ -67,12 +67,19 @@ baseUrl = BaseUrl Https "api.github.com" 443 ""
 
 repoMessage :: Repo -> String
 repoMessage Repo{..} = 
-    printf fmt repoHtmlUrl (dat repoPushedAt) repoStargazersCount 
-           repoWatchersCount repoOpenIssues repoForksCount repoLanguage
-    where fmt = "%s - Last push on %s.\
-               \ Repository has %d stars, %d watchers, %d open issues\
+    printf fmt repoHtmlUrl dsc (dat repoPushedAt) repoStargazersCount 
+           repoOpenIssues repoForksCount repoLanguage
+    where fmt = "%s - %s - Last push on %s.\
+               \ Repository has %d stars, %d open issues\
                \ and %d forks. Written in %s."
           dat = formatTime defaultTimeLocale "%b %d, %Y"
+          dsc = case repoDescription of
+                    Nothing -> "(No description)"
+                    Just x  -> 
+                        let x' = unwords . take 8 . words $ x
+                         in if x /= x'
+                            then x' ++ "[...]"
+                            else x
 
 github :: MonadIO m => Manager -> Response m
 github manager = fromMsgParser parser $ \_ chan (Query user repo) -> do
