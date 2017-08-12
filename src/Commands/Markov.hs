@@ -138,7 +138,7 @@ marxov = markov ":marxov" chain $ map tokenize starts
                    , "The feudal", "Working men" ]
 
 stirner :: MonadRandom m => Response m
-stirner = stirner ":stirner" chain $ map tokenize starts
+stirner = markov ":stirner" chain $ map tokenize starts
     where chain = buildChain 2 . tokenize . unpack $
                       ($(embedFile "etc/markov/stirner"))
           starts = [ "When we", "And to", "But, if"
