@@ -127,6 +127,7 @@ main = do
               , userLimit' c ulim nlab
               , userLimit' c ulim trump
               , userLimit' c ulim marxov
+              , userLimit' c ulim stirner
               , userLimit' c ulim trek
               , userLimit' c ulim interject
               , userLimit' c ulim cia
