@@ -2,6 +2,8 @@ server: "irc.freenode.net"
 service: 6667
 chans:
     - "#botnet"
+banChans:
+    - "#banned"
 botnick: "botnet"
 botpwd: "somePassword"
 adminUsers: 

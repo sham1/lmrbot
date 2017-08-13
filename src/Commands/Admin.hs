@@ -26,7 +26,9 @@ joinCmd :: Monad m => BotConfig -> Response m
 joinCmd r = fromMsgParser' (string ":join" *> space *> takeByteString) $ 
     \p _ c -> runMaybeT $ do
         guard (fromAdmin' r p)
-        return $ joinChan c
+        if c `elem` banChans r
+            then fail "banned channel"
+            else return $ joinChan c
 
 leaveCmd :: Monad m => BotConfig -> Response m
 leaveCmd r = fromMsgParser' 
@@ -47,7 +49,9 @@ modeCmd r = fromMsgParser'
 inviteR :: Monad m => BotConfig -> Response m
 inviteR r = Response $ \m@Message{..} -> runMaybeT $ do
     guard (isInvite m && fromAdmin' r msg_prefix)
-    return $ joinChan (last msg_params)
+    if (last msg_params) `elem` banChans r
+        then fail "banned channel"
+        else return $ joinChan (last msg_params)
 
 isInvite :: Message -> Bool
 isInvite Message{..} = msg_command == "INVITE"

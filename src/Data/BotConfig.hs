@@ -29,6 +29,7 @@ data BotConfig = BotConfig
     { server     :: HostName
     , service    :: PortID
     , chans      :: [Channel]
+    , banChans   :: [Channel]
     , botnick    :: UserName
     , botpwd     :: Maybe ByteString
     , adminUsers :: [UserName]
@@ -56,6 +57,7 @@ defaultConfig = BotConfig
     { server     = "irc.freenode.net"
     , service    = PortNumber 6667
     , chans      = []
+    , banChans   = []
     , botnick    = "lmrbot"
     , botpwd     = Nothing
     , adminUsers = []
