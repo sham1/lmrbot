@@ -64,4 +64,5 @@ executable lmrbot
                        transformers,
                        unordered-containers,
                        vector,
-                       yaml
+                       yaml,
+                       array
