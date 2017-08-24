@@ -13,14 +13,12 @@ module Commands.Quote
 where
 
 import Control.Applicative
-import Control.Monad
 import Control.Monad.Random.Class
 import Data.FileEmbed
 import Data.Response
 import Data.Monoid
 import Data.Maybe
 import Data.Array hiding (bounds)
-import Data.List (tails, inits, minimumBy)
 import Data.Ord (comparing)
 import Network.IRC
 import Data.Vector (Vector)
@@ -32,32 +30,30 @@ import Text.Printf
 
 type Quote = ByteString
 
-editDistance :: ByteString -> ByteString -> Int
-editDistance xs ys = table ! (m,n)
+similarity :: ByteString -> ByteString -> Int
+similarity xs ys =
+    minimum [ table ! (m,i) | i <- [0..n] ]
     where (m,n) = (B.length xs, B.length ys)
-          x     = array (1,m) (zip [1..] $ B.unpack xs)
-          y     = array (1,n) (zip [1..] $ B.unpack ys)
      
           table :: Array (Int, Int) Int
           table = array bnds [(ij, dist ij) | ij <- range bnds]
           bnds  = ((0,0),(m,n))
      
-          dist (0,j) = j
+          dist (0,_) = 0
           dist (i,0) = i
           dist (i,j) = minimum 
               [ table ! (i-1,j) + 1
               , table ! (i,j-1) + 1
-              , if x ! i == y ! j 
+              , if xs `B.index` (pred i) == ys `B.index` (pred j)
                 then table ! (i-1,j-1) 
                 else 1 + table ! (i-1,j-1)
               ]
 
-search :: ByteString -> [Quote] -> Maybe Int
-search _ [] = Nothing
-search pat xs = Just . fst . 
-    minimumBy (comparing 
-        (minimum . map (editDistance pat . B.pack) . (tails >=> inits) . snd)) 
-       . zip [0..] . map B.unpack $ xs
+search :: ByteString -> Vector Quote -> Maybe Int
+search pat xs 
+    | V.null xs = Nothing
+    | otherwise = Just . V.minIndexBy (comparing (similarity pat)) $ xs
+{-# INLINE search #-}
 
 data QuoteCmd
     = RandomQuote
@@ -73,12 +69,16 @@ qcmd cmd = string cmd *> go
 quote :: MonadRandom m => ByteString -> Vector Quote -> Response m
 quote cmd qs = fromMsgParser (qcmd cmd) $ \_ chan k -> do
     let bounds = V.length qs
-    r <- case k of
-        RandomQuote -> getRandomR (0, pred bounds)
-        Numbered r' -> return (r' `mod` bounds)
-        Search pat  -> return . fromMaybe 0 $ search pat (V.toList qs)
-    let pfix = printf "[%d/%d] " r (pred bounds)
-    return $ privmsg (fromMaybe "" chan) (B.pack pfix <> qs V.! r)
+    res <- case k of
+        RandomQuote -> Just <$> getRandomR (0, pred bounds)
+        Numbered r' -> pure (Just $ r' `mod` bounds)
+        Search pat  -> pure $ search pat qs
+    case res of
+        Nothing ->
+            return $ privmsg (fromMaybe "" chan) "No quote found!"
+        Just r -> do
+            let pfix = printf "[%d/%d] " r (pred bounds)
+            return $ privmsg (fromMaybe "" chan) (B.pack pfix <> qs V.! r)
 
 rms :: MonadRandom m => Response m
 rms = quote ":rms" rmsQs
