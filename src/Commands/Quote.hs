@@ -62,8 +62,8 @@ data QuoteCmd
 
 qcmd :: ByteString -> Parser QuoteCmd
 qcmd cmd = string cmd *> go
-    where go = (Search <$> (space *> takeByteString))
-           <|> (Numbered <$> (space *> signed decimal))
+    where go = (Numbered <$> (space *> signed decimal))
+           <|> (Search <$> (space *> takeByteString))
            <|> pure RandomQuote
 
 quote :: MonadRandom m => ByteString -> Vector Quote -> Response m
