@@ -4,6 +4,7 @@ module Commands.Admin
 (
     joinCmd,
     leaveCmd,
+    nickCmd,
     modeCmd,
     inviteR,
     isInvite,
@@ -37,6 +38,12 @@ leaveCmd r = fromMsgParser'
         chan <- MaybeT . return $ c
         guard (fromAdmin' r p)
         return . part . fromMaybe chan $ c'
+
+nickCmd :: Monad m => BotConfig -> Response m
+nickCmd r = fromMsgParser' (string ":nick" *> space *> takeByteString) $ 
+    \p _ c -> runMaybeT $ do
+        guard (fromAdmin' r p)
+        return . nick $ c
 
 modeCmd :: Monad m => BotConfig -> Response m
 modeCmd r = fromMsgParser'

@@ -110,6 +110,7 @@ main = do
               , return ctcpVersion
               , return $ joinCmd c
               , return $ leaveCmd c
+              , return $ nickCmd c
               , return $ modeCmd c
               , return $ say c
               , return $ source
