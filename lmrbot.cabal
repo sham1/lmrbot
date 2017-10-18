@@ -39,6 +39,7 @@ executable lmrbot
                        Commands.Markov
                        Commands.CIA
                        Commands.Github
+                       Commands.Distrowatch
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts
   build-depends:       MonadRandom,
@@ -65,4 +66,5 @@ executable lmrbot
                        unordered-containers,
                        vector,
                        yaml,
-                       array
+                       array,
+                       tagsoup
