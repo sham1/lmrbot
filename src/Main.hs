@@ -48,15 +48,15 @@ optInfo = info (helper <*> optParser)
    <> progDesc "An IRC Bot"
    <> header "lmrbot - A spambot" )
 
-response :: Monad m => [Response m] -> Pipe Message ByteString m ()
-response rsps = P.mapM go >-> filterJust >-> P.map (encode . filterLong)
-    where go m = listToMaybe . catMaybes <$> mapM (`respond` m) rsps
-          filterLong t
-              | [c,m] <- msg_params t
-              , B.length m >= 448 = t { msg_params = [c, longMsg] }
-              | otherwise = t
-
-          longMsg = "Nah, too much work. You're on your own"
+response :: Monad m => Response m -> Pipe Message ByteString m ()
+response rsp =
+    P.mapM (respond rsp) >-> filterJust >-> P.map (encode . filterLong)
+  where
+    filterLong t
+        | [c, m] <- msg_params t
+        , B.length m >= 448 = t {msg_params = [c, longMsg]}
+        | otherwise = t
+    longMsg = "Nah, too much work. You're on your own"
 
 bootstrap :: MonadIO m 
           => BotConfig 
@@ -71,7 +71,7 @@ bootstrap conf up down = do
 
     -- wait for and respond to initial ping
     up >-> P.tee (inbound conf) >-> parseIRC >-> P.dropWhile (not . isPing) 
-       >-> P.take 1 >-> response [ pingR ] >-> P.tee (outbound conf) >-> down
+       >-> P.take 1 >-> response pingR >-> P.tee (outbound conf) >-> down
 
     -- drain until nickserv notice
     up >-> P.tee (inbound conf) >-> parseIRC >-> P.dropWhile (not . isNSNotice) 
@@ -97,11 +97,12 @@ main = do
     runEffect $ bootstrap conf up down 
 
     cooldown <- emptyCooldown
-    comms' <- sequence (comms conf cooldown man)
+    comms' <- mconcat <$> sequence (comms conf cooldown man)
 
     -- bot loop
     runEffect $ 
-        up >-> P.tee (inbound conf) >-> parseIRC >-> response comms'
+        up >-> P.tee (inbound conf) >-> parseIRC 
+           >-> response (userIgnore conf comms')
            >-> P.tee (outbound conf) >-> down
 
     where comms c ulim man = 
@@ -113,7 +114,7 @@ main = do
               , return $ nickCmd c
               , return $ modeCmd c
               , return $ say c
-              , return $ source
+              , return source
               , userLimit' c ulim rotCmd
               , userLimit' c ulim rmsfact
               , userLimit' c ulim rms

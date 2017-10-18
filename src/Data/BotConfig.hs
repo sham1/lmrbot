@@ -37,6 +37,7 @@ data BotConfig = BotConfig
     , rateChans  :: [Channel]
     , umodes     :: [ByteString]
     , wolframAPI :: Maybe WolframAPIKey
+    , ignored    :: [ByteString]
     , silent     :: Bool
     }
     deriving (Show, Eq, Generic)
@@ -65,6 +66,7 @@ defaultConfig = BotConfig
     , rateChans  = []
     , umodes     = ["+B"]
     , wolframAPI = Nothing
+    , ignored    = []
     , silent     = True
     }
 

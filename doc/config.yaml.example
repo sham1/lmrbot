@@ -1,17 +1,44 @@
+# Server the bot connects to
 server: "irc.freenode.net"
+
+# Port number to be used
 service: 6667
+
+# List of channels to be joined after authentication
 chans:
     - "#botnet"
+
+# Channels the bot cannot be invited to and will refuse to join
 banChans:
     - "#banned"
+
+# Nick used by the bot
 botnick: "botnet"
+
+# NickServ password
 botpwd: "somePassword"
+
+# Bot administrators
 adminUsers: 
     - "the_bofh"
+
+# Timeout for the rate limiter
 rateTime: 300
+
+# List of rate limited channels
 rateChans:
     - "#botnet"
+
+# UMODEs set by the bot
 umodes:
     - "+B"
+
+# WolframAlpha API key
 wolframAPI: "DEMO"
+
+# Users to be ignored unconditionally
+ignored:
+    - "spammer"
+
+# When false, all traffic is dumped to stdout
 silent: true

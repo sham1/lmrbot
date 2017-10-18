@@ -24,11 +24,13 @@ module Data.Response
     rateLimit',
     userLimit,
     userLimit',
+    userIgnore,
     emptyCooldown,
     UserCooldown
 )
 where
 
+import Control.Applicative
 import Control.Concurrent.MVar
 import Control.Monad
 import Control.Monad.Trans.Maybe
@@ -44,6 +46,10 @@ import Network.IRC
 import qualified Data.Map as M
 
 newtype Response m = Response { respond :: Message -> m (Maybe Message) }
+
+instance Monad m => Monoid (Response m) where
+    mempty = Response $ const (pure Nothing)
+    mappend r s = Response $ \m -> liftA2 (<|>) (respond r m) (respond s m)
 
 emptyResponse :: Applicative m => Response m
 emptyResponse = Response $ \_ -> pure Nothing
@@ -201,3 +207,13 @@ userLimit' c mvar res = return . Response $ \m -> do
                    && chan `elem` rateChans c
                     then liftIO (putMVar mvar umap) >> return Nothing
                     else liftIO (putMVar mvar umap') >> return r
+
+userIgnore :: Monad m => BotConfig -> Response m -> Response m
+userIgnore c res =
+    Response $ \m ->
+        case msg_prefix m of
+            Just (NickName x _ _) ->
+                if (x `elem` ignored c)
+                    then pure Nothing
+                    else respond res m
+            _ -> respond res m
