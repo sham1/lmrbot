@@ -25,6 +25,7 @@ import Commands.Interject
 import Commands.Wolfram
 import Commands.Github
 import Commands.Reddit
+import Commands.Crypto
 import Commands.RotCipher
 import Commands.Markov
 import Commands.CIA
@@ -137,4 +138,5 @@ main = do
               , userLimit' c ulim (distrowatch man)
               , return $ wolfram man (wolframAPI c)
               , return $ github man
+              , return $ crypto man
               ]

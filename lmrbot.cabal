@@ -40,6 +40,7 @@ executable lmrbot
                        Commands.CIA
                        Commands.Github
                        Commands.Distrowatch
+                       Commands.Crypto
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts
   build-depends:       MonadRandom,
