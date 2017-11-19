@@ -16,7 +16,7 @@ import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Aeson.Casing
 import Data.Attoparsec.ByteString.Char8 hiding (take)
-import Data.ByteString.Char8 (pack)
+import Data.ByteString.Char8 (pack, unpack)
 import Data.Maybe (fromMaybe)
 import Data.Proxy
 import Data.Response
@@ -52,15 +52,19 @@ type RepoInfo = Header "User-Agent" String
 repoInfo :: Client RepoInfo
 repoInfo = client (Proxy :: Proxy RepoInfo)
 
-data Query = Query String String
+data Query = 
+    FullQuery String String | PartQuery String
     deriving (Eq, Show, Ord)
 
 parser :: Parser Query
-parser = Query
-     <$> (string ":github" *> space *> ident)
-     <*> (((() <$ char '/') <|> skipSpace) *> ident)
-     where ident = many1 
-                 $ satisfy (\x -> isDigit x || isAlpha_iso8859_15 x || x == '-')
+parser = choice [fullQuery, partQuery]
+  where
+    ident =
+        many1 $ satisfy (\x -> isDigit x || isAlpha_iso8859_15 x || x == '-')
+    fullQuery =
+        FullQuery <$> (string ":github" *> space *> ident) <*>
+        (((() <$ char '/') <|> skipSpace) *> ident)
+    partQuery = PartQuery <$> (string ":github" *> space *> ident)
 
 baseUrl :: BaseUrl
 baseUrl = BaseUrl Https "api.github.com" 443 ""
@@ -82,13 +86,18 @@ repoMessage Repo{..} =
                             else x
 
 github :: MonadIO m => Manager -> Response m
-github manager = fromMsgParser parser $ \_ chan (Query user repo) -> do
-    x <- liftIO . flip runClientM (ClientEnv manager baseUrl) $ do
-        r <- repoInfo (Just "tsahyt/lmrbot") user repo
-        pure . pack . repoMessage $ r
-
-    let result = case x of
-                     Left _   -> "Error while searching for repository"
-                     Right x' -> x'
-
-    return $ privmsg (fromMaybe "" chan) result
+github manager =
+    fromMsgParser parser $ \p chan q -> do
+        let (user, repo) =
+                case q of
+                    FullQuery u r -> (u, r)
+                    PartQuery r -> (maybe "microsoft" unpack $ msgUser' p, r)
+        x <-
+            liftIO . flip runClientM (ClientEnv manager baseUrl) $ do
+                r <- repoInfo (Just "tsahyt/lmrbot") user repo
+                pure . pack . repoMessage $ r
+        let result =
+                case x of
+                    Left _ -> "Error while searching for repository"
+                    Right x' -> x'
+        return $ privmsg (fromMaybe "" chan) result
