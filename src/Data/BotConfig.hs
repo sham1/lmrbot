@@ -16,6 +16,7 @@ import Network
 import Network.IRC
 import Data.Time.Clock
 import Data.Yaml
+import Data.HostMask
 import Data.ByteString.Char8 (ByteString, pack)
 import Servant.API
 import GHC.Generics
@@ -32,12 +33,12 @@ data BotConfig = BotConfig
     , banChans   :: [Channel]
     , botnick    :: UserName
     , botpwd     :: Maybe ByteString
-    , adminUsers :: [UserName]
+    , adminUsers :: [HostMask]
     , rateTime   :: NominalDiffTime
     , rateChans  :: [Channel]
     , umodes     :: [ByteString]
     , wolframAPI :: Maybe WolframAPIKey
-    , ignored    :: [ByteString]
+    , ignored    :: [HostMask]
     , silent     :: Bool
     }
     deriving (Show, Eq, Generic)

@@ -18,8 +18,7 @@ module Data.Response
     fromUser,
     fromAdmin,
     fromAdmin',
-    msgUser,
-    msgUser',
+    prefixUser,
     rateLimit,
     rateLimit',
     userLimit,
@@ -36,6 +35,7 @@ import Control.Monad
 import Control.Monad.Trans.Maybe
 import Control.Monad.IO.Class
 import Data.BotConfig
+import Data.HostMask
 import Data.Monoid
 import Data.ByteString.Char8 (ByteString)
 import Data.Attoparsec.ByteString.Char8
@@ -128,13 +128,13 @@ notice u m = Message Nothing "NOTICE" [u,m]
 
 fromAdmin :: BotConfig -> Message -> Bool
 fromAdmin BotConfig{..} m = fromMaybe False $ do
-    u <- msgUser m
-    return $ u `elem` adminUsers
+    p <- msg_prefix m
+    pure $ any (`fromHostmask` p) adminUsers
 
 fromAdmin' :: BotConfig -> Maybe Prefix -> Bool
 fromAdmin' BotConfig{..} p = fromMaybe False $ do
-    NickName u _ _ <- p
-    return $ u `elem` adminUsers
+    p' <- p
+    pure $ any (`fromHostmask` p') adminUsers
 
 fromUser :: UserName -> Message -> Bool
 fromUser n Message{..} =
@@ -142,12 +142,12 @@ fromUser n Message{..} =
         Just (NickName u _ _) -> n == u
         _ -> False
 
-msgUser :: Message -> Maybe UserName
-msgUser Message{..} = msgUser' msg_prefix
+fromHostmask :: HostMask -> Prefix -> Bool
+fromHostmask mask pre = matchHostMask mask (showPrefix pre)
 
-msgUser' :: Maybe Prefix -> Maybe UserName
-msgUser' (Just (NickName u _ _)) = Just u
-msgUser' _ = Nothing
+prefixUser :: Prefix -> UserName
+prefixUser (Server c) = c
+prefixUser (NickName c1 _ _) = c1
 
 msgChannel :: Message -> Maybe Channel
 msgChannel Message{..} = case msg_params of
@@ -183,7 +183,7 @@ userLimit c res = do
     mvar <- liftIO (newMVar M.empty)
     userLimit' c mvar res
 
-type UserCooldown = M.Map UserName POSIXTime
+type UserCooldown = M.Map ByteString POSIXTime
 
 emptyCooldown :: MonadIO m => m (MVar UserCooldown)
 emptyCooldown = liftIO (newMVar M.empty)
@@ -200,7 +200,7 @@ userLimit' c mvar res = return . Response $ \m -> do
             r -> do
                 umap <- liftIO (takeMVar mvar)
                 tc   <- utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
-                let u     = fromMaybe ".unknown." $ msgUser m
+                let u     = fromMaybe ".unknown." $ showPrefix <$> msg_prefix m
                     ts    = fromMaybe 0 $ M.lookup u umap
                     umap' = M.insert u tc umap
                 if tc - ts <= rateTime c && not (fromAdmin c m)
@@ -212,8 +212,8 @@ userIgnore :: Monad m => BotConfig -> Response m -> Response m
 userIgnore c res =
     Response $ \m ->
         case msg_prefix m of
-            Just (NickName x _ _) ->
-                if (x `elem` ignored c)
+            Just p ->
+                if any (`fromHostmask` p) (ignored c)
                     then pure Nothing
                     else respond res m
             _ -> respond res m

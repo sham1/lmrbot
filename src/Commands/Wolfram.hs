@@ -99,7 +99,7 @@ baseUrl = BaseUrl Http "api.wolframalpha.com" 80 ""
 wolfram :: MonadIO m => Manager -> Maybe WolframAPIKey -> Response m
 wolfram _ Nothing = emptyResponse
 wolfram man appid = fromMsgParser parser $ \p chan q -> do
-    let u   = fromMaybe "Dave" $ msgUser' p
+    let u   = fromMaybe "Dave" $ prefixUser <$> p
         env = ClientEnv man baseUrl
     res <- liftIO $ flip runClientM env $ shortAnswer appid (Just q)
     case res of

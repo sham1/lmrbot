@@ -10,6 +10,7 @@ module Data.HostMask
 )
 where
 
+import Data.Aeson
 import Control.Applicative
 import Data.Char (isAlphaNum)
 import Data.Attoparsec.ByteString.Char8
@@ -25,6 +26,13 @@ data HostMask = HostMask
     , host :: NonEmpty MaskComp
     }
     deriving (Eq, Show, Ord, Read, Generic)
+
+instance FromJSON HostMask where
+    parseJSON x = do
+        z <- pack <$> parseJSON x
+        case parseOnly hostMask z of
+            Left _ -> fail "Parsing of hostmask failed"
+            Right r -> pure r
 
 data MaskComp 
     = MaskString ByteString

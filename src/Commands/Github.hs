@@ -91,7 +91,7 @@ github manager =
         let (user, repo) =
                 case q of
                     FullQuery u r -> (u, r)
-                    PartQuery r -> (maybe "microsoft" unpack $ msgUser' p, r)
+                    PartQuery r -> (maybe "microsoft" unpack $ prefixUser <$> p, r)
         x <-
             liftIO . flip runClientM (ClientEnv manager baseUrl) $ do
                 r <- repoInfo (Just "tsahyt/lmrbot") user repo
