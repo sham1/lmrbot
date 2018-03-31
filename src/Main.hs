@@ -136,6 +136,7 @@ main = do
               , userLimit' c ulim interject
               , userLimit' c ulim cia
               , userLimit' c ulim fbi
+              , userLimit' c ulim fiveeyes
               , userLimit' c ulim (distrowatch man)
               , return $ wolfram man (wolframAPI c)
               , return $ github man
