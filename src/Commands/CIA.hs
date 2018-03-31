@@ -38,7 +38,7 @@ fiveeyes :: MonadRandom m => Response m
 fiveeyes = 
     fromMsgParser parser $ \_ chan _ -> do
         c <- getRandomR (1337 :: Int, 99999 :: Int)
-        let ret = "This incident was reported to a member of and share amongst the Five Eyes. Case #" <> B.pack (show c)
+        let ret = "This incident was reported to a member of and shared amongst the Five Eyes. Case #" <> B.pack (show c)
         return $ privmsg (fromMaybe "" chan) ret
     where
         parser = string ":fiveeyes" <|> string ":FIVEEYES"
