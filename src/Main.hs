@@ -23,10 +23,13 @@ import Commands.Admin
 import Commands.Quote
 import Commands.Interject
 import Commands.Wolfram
+import Commands.Github
 import Commands.Reddit
+import Commands.Crypto
 import Commands.RotCipher
 import Commands.Markov
 import Commands.CIA
+import Commands.Distrowatch
 
 import Options.Applicative
 
@@ -47,15 +50,15 @@ optInfo = info (helper <*> optParser)
    <> progDesc "An IRC Bot"
    <> header "lmrbot - A spambot" )
 
-response :: Monad m => [Response m] -> Pipe Message ByteString m ()
-response rsps = P.mapM go >-> filterJust >-> P.map (encode . filterLong)
-    where go m = listToMaybe . catMaybes <$> mapM (`respond` m) rsps
-          filterLong t
-              | [c,m] <- msg_params t
-              , B.length m >= 448 = t { msg_params = [c, longMsg] }
-              | otherwise = t
-
-          longMsg = "Nah, too much work. You're on your own"
+response :: Monad m => Response m -> Pipe Message ByteString m ()
+response rsp =
+    P.mapM (respond rsp) >-> filterJust >-> P.map (encode . filterLong)
+  where
+    filterLong t
+        | [c, m] <- msg_params t
+        , B.length m >= 448 = t {msg_params = [c, longMsg]}
+        | otherwise = t
+    longMsg = "Nah, too much work. You're on your own"
 
 bootstrap :: MonadIO m 
           => BotConfig 
@@ -70,7 +73,7 @@ bootstrap conf up down = do
 
     -- wait for and respond to initial ping
     up >-> P.tee (inbound conf) >-> parseIRC >-> P.dropWhile (not . isPing) 
-       >-> P.take 1 >-> response [ pingR ] >-> P.tee (outbound conf) >-> down
+       >-> P.take 1 >-> response pingR >-> P.tee (outbound conf) >-> down
 
     -- drain until nickserv notice
     up >-> P.tee (inbound conf) >-> parseIRC >-> P.dropWhile (not . isNSNotice) 
@@ -96,11 +99,12 @@ main = do
     runEffect $ bootstrap conf up down 
 
     cooldown <- emptyCooldown
-    comms' <- sequence (comms conf cooldown man)
+    comms' <- mconcat <$> sequence (comms conf cooldown man)
 
     -- bot loop
     runEffect $ 
-        up >-> P.tee (inbound conf) >-> parseIRC >-> response comms'
+        up >-> P.tee (inbound conf) >-> parseIRC 
+           >-> response (userIgnore conf comms')
            >-> P.tee (outbound conf) >-> down
 
     where comms c ulim man = 
@@ -109,8 +113,10 @@ main = do
               , return ctcpVersion
               , return $ joinCmd c
               , return $ leaveCmd c
+              , return $ nickCmd c
               , return $ modeCmd c
               , return $ say c
+              , return source
               , userLimit' c ulim rotCmd
               , userLimit' c ulim rmsfact
               , userLimit' c ulim rms
@@ -125,8 +131,14 @@ main = do
               , userLimit' c ulim nlab
               , userLimit' c ulim trump
               , userLimit' c ulim marxov
+              , userLimit' c ulim stirner
               , userLimit' c ulim trek
               , userLimit' c ulim interject
               , userLimit' c ulim cia
+              , userLimit' c ulim fbi
+              , userLimit' c ulim fiveeyes
+              , userLimit' c ulim (distrowatch man)
               , return $ wolfram man (wolframAPI c)
+              , return $ github man
+              , return $ crypto man
               ]

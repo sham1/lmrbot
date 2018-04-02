@@ -4,10 +4,12 @@ module Commands.Admin
 (
     joinCmd,
     leaveCmd,
+    nickCmd,
     modeCmd,
     inviteR,
     isInvite,
-    say
+    say,
+    source
 )
 where
 
@@ -25,7 +27,9 @@ joinCmd :: Monad m => BotConfig -> Response m
 joinCmd r = fromMsgParser' (string ":join" *> space *> takeByteString) $ 
     \p _ c -> runMaybeT $ do
         guard (fromAdmin' r p)
-        return $ joinChan c
+        if c `elem` banChans r
+            then fail "banned channel"
+            else return $ joinChan c
 
 leaveCmd :: Monad m => BotConfig -> Response m
 leaveCmd r = fromMsgParser' 
@@ -34,6 +38,12 @@ leaveCmd r = fromMsgParser'
         chan <- MaybeT . return $ c
         guard (fromAdmin' r p)
         return . part . fromMaybe chan $ c'
+
+nickCmd :: Monad m => BotConfig -> Response m
+nickCmd r = fromMsgParser' (string ":nick" *> space *> takeByteString) $ 
+    \p _ c -> runMaybeT $ do
+        guard (fromAdmin' r p)
+        return . nick $ c
 
 modeCmd :: Monad m => BotConfig -> Response m
 modeCmd r = fromMsgParser'
@@ -46,7 +56,9 @@ modeCmd r = fromMsgParser'
 inviteR :: Monad m => BotConfig -> Response m
 inviteR r = Response $ \m@Message{..} -> runMaybeT $ do
     guard (isInvite m && fromAdmin' r msg_prefix)
-    return $ joinChan (last msg_params)
+    if (last msg_params) `elem` banChans r
+        then fail "banned channel"
+        else return $ joinChan (last msg_params)
 
 isInvite :: Message -> Bool
 isInvite Message{..} = msg_command == "INVITE"
@@ -63,3 +75,7 @@ say r = fromMsgParser' parser $ \p _ (SayCmd chan text) ->
                           <*> (space *> takeByteString)
           channel = cons <$> char '#' <*> takeWhile1 chanChars
           chanChars x = isAlpha_iso8859_15 x || isDigit x
+
+source :: Monad m => Response m
+source = simpleCmd ":source" $ \_ chan ->
+    return $ privmsg (fromMaybe "" chan) "https://github.com/tsahyt/lmrbot"

@@ -26,3 +26,6 @@ Your code is shit.. your argument is shit.
 Over the years, I've become convinced that the BSD license is great for code you don't care about.
 I really think the license has been one of the defining factors in the success of Linux because it enforced that you have to give back, which meant that the fragmentation has never been something that has been viable from a technical standpoint.
 I'm distrustful of projects that do not have well-defined goals, and well-defined interfaces. They tend to bloat and do "everything" over time. This is what gives us horrors like GNU emacs and Mach: they don't try to do one thing well, they try to do _everything_ based on some loose principle ("LISP is good" or "microkernels make sense" or "GGI should do graphics")
+If you solve world hunger, and make a driver that cures people of cancer, by all means enable it by default. But afaik, the Cavium CNN55XX does neither.
+Every developer always thinks that _their_ code is so special and magical that it should be enabled by default.
+Here's a nickel, Kid. Buy a real editor.

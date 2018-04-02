@@ -16,6 +16,7 @@ import Network
 import Network.IRC
 import Data.Time.Clock
 import Data.Yaml
+import Data.HostMask
 import Data.ByteString.Char8 (ByteString, pack)
 import Servant.API
 import GHC.Generics
@@ -29,13 +30,15 @@ data BotConfig = BotConfig
     { server     :: HostName
     , service    :: PortID
     , chans      :: [Channel]
+    , banChans   :: [Channel]
     , botnick    :: UserName
     , botpwd     :: Maybe ByteString
-    , adminUsers :: [UserName]
+    , adminUsers :: [HostMask]
     , rateTime   :: NominalDiffTime
     , rateChans  :: [Channel]
     , umodes     :: [ByteString]
     , wolframAPI :: Maybe WolframAPIKey
+    , ignored    :: [HostMask]
     , silent     :: Bool
     }
     deriving (Show, Eq, Generic)
@@ -56,6 +59,7 @@ defaultConfig = BotConfig
     { server     = "irc.freenode.net"
     , service    = PortNumber 6667
     , chans      = []
+    , banChans   = []
     , botnick    = "lmrbot"
     , botpwd     = Nothing
     , adminUsers = []
@@ -63,6 +67,7 @@ defaultConfig = BotConfig
     , rateChans  = []
     , umodes     = ["+B"]
     , wolframAPI = Nothing
+    , ignored    = []
     , silent     = True
     }
 

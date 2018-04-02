@@ -9,6 +9,7 @@ module Commands.Markov
     nlab,
     trump,
     marxov,
+    stirner,
     trek
 )
 where
@@ -135,6 +136,22 @@ marxov = markov ":marxov" chain $ map tokenize starts
                    , "All objections", "But you", "Bourgeois marriage"
                    , "The working" , "The Communist"
                    , "The feudal", "Working men" ]
+
+stirner :: MonadRandom m => Response m
+stirner = markov ":stirner" chain $ map tokenize starts
+    where chain = buildChain 2 . tokenize . unpack $
+                      ($(embedFile "etc/markov/stirner"))
+          starts = [ "When we", "And to", "But, if"
+                   , "God has", "If you"
+                   , "But to", "When we", "For all"
+                   , "The egoism", "Communism really"
+                   , "That society", "It must"
+                   , "All wisdom", "If labor"
+                   , "Since the", "If one"
+                   , "Take notice", "Let us"
+                   , "Men that", "Intercourse resting"
+                   , "The most", "When I"
+                   , "Of course", "The not-me" ]
 
 trek :: MonadRandom m => Response m
 trek = markov ":trek" chain $ map tokenize starts
